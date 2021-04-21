@@ -13,9 +13,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="DbRequests\Handlers\Commands\Clients\" />
-    <Folder Include="DbRequests\Handlers\Commands\Settings\" />
-    <Folder Include="DbRequests\Handlers\Commands\Sales\" />
     <Folder Include="DbRequests\Handlers\Queries\" />
   </ItemGroup>
 

@@ -3,8 +3,8 @@
 using MediatR;
 
 namespace Simply.Sales.BLL.DbRequests.Requests.Commands.Sales.Orders {
-	public class DeleteOrder : IRequest {
-		public DeleteOrder(int id) {
+	public class DeleteProduct : IRequest {
+		public DeleteProduct(int id) {
 			Contract.Requires(id > 0);
 
 			Id = id;

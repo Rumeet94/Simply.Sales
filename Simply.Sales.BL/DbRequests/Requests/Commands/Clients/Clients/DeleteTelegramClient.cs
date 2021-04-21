@@ -3,8 +3,8 @@
 using MediatR;
 
 namespace Simply.Sales.BLL.DbRequests.Requests.Commands.Clients.Clients {
-	public class DeleteClient : IRequest {
-		public DeleteClient(int id) {
+	public class DeleteTelegramClient : IRequest {
+		public DeleteTelegramClient(int id) {
 			Contract.Requires(id > 0);
 
 			Id = id;
