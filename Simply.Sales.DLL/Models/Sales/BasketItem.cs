@@ -1,5 +1,5 @@
 ﻿namespace Simply.Sales.DLL.Models.Sales {
-	public class BasketItem {
+	public class BasketItem : BaseDbModel {
 		public int OrderId { get; set; }
 
 		public int ProductId { get; set; }

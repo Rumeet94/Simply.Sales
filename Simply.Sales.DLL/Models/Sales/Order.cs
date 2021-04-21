@@ -5,10 +5,8 @@ using Simply.Sales.DLL.Models.Clients;
 using Simply.Sales.DLL.Models.Sales.Enums;
 
 namespace Simply.Sales.DLL.Models.Sales {
-	public class Order {
-		public int Id { get; set; }
-
-		public int ClientChatId { get; set; }
+	public class Order : BaseDbModel {
+		public int ClientId { get; set; }
 
 		public DateTime DateCreated { get; set; }
 
@@ -19,6 +17,8 @@ namespace Simply.Sales.DLL.Models.Sales {
 		public DateTime DateCompleted { get; set; }
 
 		public IEnumerable<BasketItem> Basket { get; set; }
+
+		public bool IsCanceled { get; set; }
 
 		public TelegramClient Client { get; set; }
 	}

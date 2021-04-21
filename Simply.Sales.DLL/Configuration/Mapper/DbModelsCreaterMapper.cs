@@ -12,7 +12,7 @@ namespace Simply.Sales.DLL.Configuration.Mapper {
 			yield return new CategoryDbModelCreaterStrategy();
 			yield return new ProductDbModelCreaterStrategy();
 			yield return new SettingDbModelCreaterStrategy();
-			yield return new BasketDbModelCreaterStrategy();
+			yield return new BasketItemDbModelCreaterStrategy();
 			yield return new OrderDbModelCreaterStrategy();
 			yield return new ClientActionDbModelCreaterStrategy();
 		}

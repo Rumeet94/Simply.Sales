@@ -19,6 +19,10 @@ namespace Simply.Sales.DLL.Configuration.Creater.Strategies.Sales {
 				.WithOne(t => t.Category)
 				.HasForeignKey(c => c.CategoryId)
 				.IsRequired();
+
+			modelBuilder.Entity<Category>()
+				.Property(c => c.IsVisible)
+				.IsRequired();
 		}
 	}
 }

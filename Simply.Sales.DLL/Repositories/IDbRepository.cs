@@ -1,11 +1,12 @@
-﻿using System;
+﻿using Simply.Sales.DLL.Models;
+using System;
 
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 namespace Simply.Sales.DLL.Repositories {
-	public interface IRepository<T> {
+	public interface IDbRepository<T> where T : BaseDbModel {
 		IEnumerable<T> Get();
 
 		IEnumerable<T> Get(Expression<Func<T, bool>> predicate);

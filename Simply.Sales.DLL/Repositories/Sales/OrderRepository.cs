@@ -10,7 +10,7 @@ using Simply.Sales.DLL.Context;
 using Simply.Sales.DLL.Models.Sales;
 
 namespace Simply.Sales.DLL.Repositories.Sales {
-	public class OrderRepository : IRepository<Order> {
+	public class OrderRepository : IDbRepository<Order> {
 		private readonly SalesDbContext _context;
 
 		public OrderRepository(SalesDbContext context) {

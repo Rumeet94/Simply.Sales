@@ -8,7 +8,7 @@ using Simply.Sales.DLL.Context;
 using Simply.Sales.DLL.Models.Settings;
 
 namespace Simply.Sales.DLL.Repositories.Settings {
-	public class SettingRepository : IRepository<Setting> {
+	public class SettingRepository : IDbRepository<Setting> {
 		private readonly SalesDbContext _context;
 
 		public SettingRepository(SalesDbContext context) {
@@ -36,7 +36,7 @@ namespace Simply.Sales.DLL.Repositories.Settings {
 			_context.Settings.Where(predicate);
 
 		public Setting GetSingle(int id) =>
-			throw new NotImplementedException();
+			_context.Settings.FirstOrDefault(c => c.Id == id);
 
 		public void Update(Setting item) {
 			_context.Update(item);

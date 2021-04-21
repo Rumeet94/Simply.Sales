@@ -8,7 +8,7 @@ using Simply.Sales.DLL.Context;
 using Simply.Sales.DLL.Models.Clients;
 
 namespace Simply.Sales.DLL.Repositories.Clients {
-	public class TelegramClientRepository : IRepository<TelegramClient> {
+	public class TelegramClientRepository : IDbRepository<TelegramClient> {
 		private readonly SalesDbContext _context;
 
 		public TelegramClientRepository(SalesDbContext context) {
@@ -36,7 +36,7 @@ namespace Simply.Sales.DLL.Repositories.Clients {
 			_context.Clients.Where(predicate);
 
 		public TelegramClient GetSingle(int id) =>
-			_context.Clients.FirstOrDefault(c => c.ChatId == id);
+			_context.Clients.FirstOrDefault(c => c.Id == id);
 
 		public void Update(TelegramClient item) {
 			_context.Update(item);

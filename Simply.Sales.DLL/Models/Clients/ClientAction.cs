@@ -3,10 +3,8 @@
 using Simply.Sales.DLL.Models.Clients.Enums;
 
 namespace Simply.Sales.DLL.Models.Clients {
-	public class ClientAction {
-		public int Id { get; set; }
-
-		public int ClientChatId { get; set; }
+	public class ClientAction : BaseDbModel {
+		public int ClientId { get; set; }
 
 		public DateTime DateCreated { get; set; }
 

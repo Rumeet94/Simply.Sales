@@ -1,5 +1,5 @@
 ﻿using MediatR;
-using Simply.Sales.BLL.DbRequests.Handlers.Queries;
+
 using Simply.Sales.DLL.Models.Clients;
 using Simply.Sales.DLL.Repositories;
 using Simply.Sales.TelegramBot.Infrastructure.Factories;
@@ -38,21 +38,21 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Servicies.Bot {
 		}
 
 		private async void BotOnMessage(object sender, MessageEventArgs e) {
-			if (e.Message.Text != null) {
-				var client = await _mediator.Send(new GetClient(e.Message.Chat.Id));
+			//if (e.Message.Text != null) {
+			//	var client = await _mediator.Send(new GetClient(e.Message.Chat.Id));
 
-				if (client == null) {
-					await _botClient.SendTextMessageAsync(
-						chatId: e.Message.Chat.Id,
-						text: "Привет! Давай знакомиться, как тебя зовут?"
-					);
-				}
-				else {
-					var keyboard = _messageFactory.CreateKeyboard(e.Message.Text);
+			//	if (client == null) {
+			//		await _botClient.SendTextMessageAsync(
+			//			chatId: e.Message.Chat.Id,
+			//			text: "Привет! Давай знакомиться, как тебя зовут?"
+			//		);
+			//	}
+			//	else {
+			//		var keyboard = _messageFactory.CreateKeyboard(e.Message.Text);
 
-					await SendKeyboardMessage(e.Message.Chat, keyboard);
-				}
-			}
+			//		await SendKeyboardMessage(e.Message.Chat, keyboard);
+			//	}
+			//}
 		}
 
 		private async Task SendKeyboardMessage(Chat chat, KeyboardItem keyboard) {

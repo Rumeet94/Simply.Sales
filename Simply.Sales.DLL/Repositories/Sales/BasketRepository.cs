@@ -11,7 +11,7 @@ using Simply.Sales.DLL.Models.Sales;
 
 
 namespace Simply.Sales.DLL.Repositories.Sales {
-	public class BasketRepository : IRepository<BasketItem> {
+	public class BasketRepository : IDbRepository<BasketItem> {
 		private readonly SalesDbContext _context;
 
 		public BasketRepository(SalesDbContext context) {
@@ -44,7 +44,7 @@ namespace Simply.Sales.DLL.Repositories.Sales {
 				.Include(c => c.Product);
 
 		public BasketItem GetSingle(int id) =>
-			throw new NotImplementedException();
+			_context.Baskets.FirstOrDefault(c => c.Id == id);
 
 		public void Update(BasketItem item) {
 			_context.Update(item);

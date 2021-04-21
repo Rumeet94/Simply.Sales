@@ -6,7 +6,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Simply.Sales.BLL.DbRequests.Requests.Queries;
+using Simply.Sales.BLL.Dto.Clients;
+using Simply.Sales.BLL.Dto.Sales;
+using Simply.Sales.BLL.Dto.Settings;
 using Simply.Sales.DLL.Configuration.Creater;
 using Simply.Sales.DLL.Configuration.Mapper;
 using Simply.Sales.DLL.Context;
@@ -44,13 +46,13 @@ namespace Simply.Sales.TelegramBot {
 			services.AddScoped<SalesDbContext>();
 			services.AddSingleton<IDbModelsCreaterMapper, DbModelsCreaterMapper>();
 			services.AddSingleton<IDbModelsCreater, DbModelsCreater>();
-			services.AddScoped<IRepository<Category>, CategoryRepository>();
-			services.AddScoped<IRepository<Product>, ProductRepository>();
-			services.AddScoped<IRepository<Setting>, SettingRepository>();
-			services.AddScoped<IRepository<TelegramClient>, TelegramClientRepository>();
+			services.AddScoped<IDbRepository<Category>, CategoryRepository>();
+			services.AddScoped<IDbRepository<Product>, ProductRepository>();
+			services.AddScoped<IDbRepository<Setting>, SettingRepository>();
+			services.AddScoped<IDbRepository<TelegramClient>, TelegramClientRepository>();
 
 			services.AddMediatR(typeof(Startup));
-			services.AddMediatR(typeof(GetClientHandler).GetTypeInfo().Assembly);
+			//services.AddMediatR(typeof(GetClientHandler).GetTypeInfo().Assembly);
 
 			services.AddSingleton<ITelegramBotService, TelegramBotService>();
 			services.AddSingleton<ITelegramMessageFactory, TelegramMessageFactory>();

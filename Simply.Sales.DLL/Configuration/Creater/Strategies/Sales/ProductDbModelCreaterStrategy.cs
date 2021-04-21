@@ -20,6 +20,10 @@ namespace Simply.Sales.DLL.Configuration.Creater.Strategies.Sales {
 			modelBuilder.Entity<Product>()
 				.Property(c => c.Name)
 				.IsRequired();
+
+			modelBuilder.Entity<Category>()
+				.Property(c => c.IsVisible)
+				.IsRequired();
 		}
 	}
 }

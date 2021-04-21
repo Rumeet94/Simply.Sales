@@ -9,12 +9,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="DbRequests\Handlers\Commands\" />
-    <Folder Include="DbRequests\Requests\Commands\" />
+    <ProjectReference Include="..\Simply.Sales.DLL\Simply.Sales.DLL.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Simply.Sales.DLL\Simply.Sales.DLL.csproj" />
+    <Folder Include="DbRequests\Handlers\Commands\Clients\" />
+    <Folder Include="DbRequests\Handlers\Commands\Settings\" />
+    <Folder Include="DbRequests\Handlers\Commands\Sales\" />
+    <Folder Include="DbRequests\Handlers\Queries\" />
   </ItemGroup>
 
 </Project>

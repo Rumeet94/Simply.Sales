@@ -10,7 +10,7 @@ using Simply.Sales.DLL.Context;
 using Simply.Sales.DLL.Models.Sales;
 
 namespace Simply.Sales.DLL.Repositories.Sales {
-	public class CategoryRepository : IRepository<Category> {
+	public class CategoryRepository : IDbRepository<Category> {
 		private readonly SalesDbContext _context;
 
 		public CategoryRepository(SalesDbContext context) {
