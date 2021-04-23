@@ -1,6 +1,4 @@
-﻿using System.Diagnostics.Contracts;
-
-using Simply.Sales.BLL.Dto.Clients;
+﻿using Simply.Sales.BLL.Dto.Clients;
 using Simply.Sales.BLL.Dto.Clients.Enums;
 using Simply.Sales.DLL.Models.Clients;
 using Simply.Sales.DLL.Models.Clients.Enums;
@@ -9,10 +7,8 @@ namespace Simply.Sales.BLL.Mappers.Dto.Clients {
 	public class ClientActionDtoMapper : IMapper<ClientAction, ClientActionDto> {
 		private readonly IMapper<TelegramClient, TelegramClientDto> _clientDtoMapper;
 
-		public ClientActionDtoMapper(IMapper<TelegramClient, TelegramClientDto> clientDtoMapper) {
-			Contract.Requires(clientDtoMapper != null);
-
-			_clientDtoMapper = clientDtoMapper;
+		public ClientActionDtoMapper() {
+			_clientDtoMapper = new TelegramClientDtoMapper();
 		}
 
 		public ClientAction BackMap(ClientActionDto source) {

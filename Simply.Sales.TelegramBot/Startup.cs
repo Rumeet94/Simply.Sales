@@ -76,6 +76,7 @@ namespace Simply.Sales.TelegramBot {
 			services.AddScoped<IDbRepository<TelegramClient>, TelegramClientRepository>();
 
 			services.AddMediatR(typeof(Startup));
+			services.AddAutoMapper(c => c.AddProfile<AutoMapping>(), typeof(Startup));
 
 			services.AddSingleton<ITelegramBotClient, TelegramBotClient>(c => new TelegramBotClient("1230930238:AAEr1KEt6DETGro4lDPB0G9qgPwuqLxA9Mw"));
 

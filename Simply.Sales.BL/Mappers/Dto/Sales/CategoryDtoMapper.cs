@@ -1,5 +1,4 @@
-﻿using System.Diagnostics.Contracts;
-using System.Linq;
+﻿using System.Linq;
 
 using Simply.Sales.BLL.Dto.Sales;
 using Simply.Sales.DLL.Models.Sales;
@@ -8,10 +7,8 @@ namespace Simply.Sales.BLL.Mappers.Dto.Sales {
 	public class CategoryDtoMapper : IMapper<Category, CategoryDto> {
 		private readonly IMapper<Product, ProductDto> _productDtoMapper;
 
-		public CategoryDtoMapper(IMapper<Product, ProductDto> productDtoMapper) {
-			Contract.Requires(productDtoMapper != null);
-
-			_productDtoMapper = productDtoMapper;
+		public CategoryDtoMapper() {
+			_productDtoMapper = new ProductDtoMapper();
 		}
 
 		public Category BackMap(CategoryDto source) {

@@ -67,9 +67,13 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 			}
 
 			if (selectItem.Type == IncomeMessageType.Paid) {
-				var keyboard = await GetPaidKeyboard(selectItem.ChatId);
+				var client = await _mediator.Send(new GetClientByTelegramChatId(selectItem.ChatId));
+				var order = client.Orders?.FirstOrDefault(o => !o.DateCompleted.HasValue);
+
+				var keyboard = GetPaidKeyboard(order.Basket.Select(b => b.Product.Price).Sum());
 
 				var markup = new InlineKeyboardMarkup(keyboard);
+				var text = string.Join(";\n", order.Basket.Select(b => $"{b.Product.Name} - {b.Product.Price} рублей"));
 
 				return new Keyboard(markup, "Выберите действие:");
 			}
@@ -105,7 +109,7 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 				var selectItem = new SelectItem { Type = IncomeMessageType.Basket, Id = item.Id };
 
 				yield return new[] {
-					InlineKeyboardButton.WithCallbackData($"{item.Name} - {item.Price} руб.", JsonSerializer.Serialize(selectItem))
+					InlineKeyboardButton.WithCallbackData($"{item.Name} - {item.Price} рублей", JsonSerializer.Serialize(selectItem))
 				};
 			}
 
@@ -116,30 +120,23 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 			};
 		}
 
-		private async Task<IEnumerable<IEnumerable<InlineKeyboardButton>>> GetPaidKeyboard(long chatId) {
-			var client = await _mediator.Send(new GetClientByTelegramChatId(chatId));
-			var order = client.Orders?.FirstOrDefault(o => !o.DateCompleted.HasValue);
-
-			var keyboard = new List<IEnumerable<InlineKeyboardButton>>();
-
-			keyboard.Add(new[] { InlineKeyboardButton.WithUrl($"Ссылка на оплату - {order.Basket.Select(b => b.Product.Price).Sum()} рублей ", @"http://google.com") });
-			keyboard.Add(new[] {
+		private IEnumerable<IEnumerable<InlineKeyboardButton>> GetPaidKeyboard(decimal totalSum) {
+			yield return new[] { InlineKeyboardButton.WithUrl($"Ссылка на оплату - {totalSum} рублей ", @"http://google.com") };
+			yield return new[] {
 				InlineKeyboardButton.WithCallbackData(
 					"Я оплатил(а)",
 					JsonSerializer.Serialize(new SelectItem { Type = IncomeMessageType.Paymented, Id = null }))
-			});
-			keyboard.Add(new[] {
+			};
+			yield return new[] {
 				InlineKeyboardButton.WithCallbackData(
 					"Я передумал(а)",
 					JsonSerializer.Serialize(new SelectItem { Type = IncomeMessageType.CleanBasket, Id = null }))
-			});
-			keyboard.Add(new[] {
+			};
+			yield return new[] {
 				InlineKeyboardButton.WithCallbackData(
 					"Назад",
 					JsonSerializer.Serialize(new SelectItem { Type = IncomeMessageType.Home, Id = null }))
-			});
-
-			return keyboard;
+			};
 		}
 
 		private async Task<IEnumerable<IEnumerable<InlineKeyboardButton>>> GetHomeKeyboard(long chatId) {

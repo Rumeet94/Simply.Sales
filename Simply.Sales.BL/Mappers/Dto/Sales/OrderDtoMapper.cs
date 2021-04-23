@@ -1,9 +1,9 @@
-﻿using System.Diagnostics.Contracts;
-using System.Linq;
+﻿using System.Linq;
 
 using Simply.Sales.BLL.Dto.Clients;
 using Simply.Sales.BLL.Dto.Sales;
 using Simply.Sales.BLL.Dto.Sales.Enums;
+using Simply.Sales.BLL.Mappers.Dto.Clients;
 using Simply.Sales.DLL.Models.Clients;
 using Simply.Sales.DLL.Models.Sales;
 using Simply.Sales.DLL.Models.Sales.Enums;
@@ -13,15 +13,9 @@ namespace Simply.Sales.BLL.Mappers.Dto.Sales {
 		private readonly IMapper<TelegramClient, TelegramClientDto> _clientDtoMapper;
 		private readonly IMapper<BasketItem, BasketItemDto> _basketDtoMapper;
 
-		public OrderDtoMapper(
-			IMapper<TelegramClient, TelegramClientDto> clientDtoMapper,
-			IMapper<BasketItem, BasketItemDto> basketDtoMapper
-		) {
-			Contract.Requires(clientDtoMapper != null);
-			Contract.Requires(basketDtoMapper != null);
-
-			_clientDtoMapper = clientDtoMapper;
-			_basketDtoMapper = basketDtoMapper;
+		public OrderDtoMapper() {
+			_clientDtoMapper = new TelegramClientDtoMapper();
+			_basketDtoMapper = new BasketItemDtoMapper();
 		}
 
 		public Order BackMap(OrderDto source) {

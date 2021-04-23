@@ -4,6 +4,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
+using AutoMapper;
+
 using MediatR;
 
 using Simply.Sales.BLL.DbRequests.Requests.Queries.Clients.Clients;
@@ -25,8 +27,8 @@ namespace Simply.Sales.BLL.DbRequests.Handlers.Queries.Clients.Clients {
 		public async Task<TelegramClientDto> Handle(GetClientByTelegramChatId request, CancellationToken cancellationToken) {
 			var clients = await Handle<TelegramClient>();
 			var client = clients.FirstOrDefault(c => c.ChatId == request.ChatId);
-
-			return _mapper.Map(client);
+			var map = Mapper.CreateMap<TelegramClient, TelegramClientDto>()
+			return Mapper.Map<TelegramClientDto>(client);
 		}
 	}
 }
