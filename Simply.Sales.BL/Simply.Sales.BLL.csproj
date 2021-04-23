@@ -12,8 +12,4 @@
     <ProjectReference Include="..\Simply.Sales.DLL\Simply.Sales.DLL.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="DbRequests\Handlers\Queries\" />
-  </ItemGroup>
-
 </Project>

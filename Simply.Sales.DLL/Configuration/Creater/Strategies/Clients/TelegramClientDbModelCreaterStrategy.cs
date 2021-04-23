@@ -13,12 +13,10 @@ namespace Simply.Sales.DLL.Configuration.Creater.Strategies.Clients {
 				.IsRequired();
 
 			modelBuilder.Entity<TelegramClient>()
-				.Property(c => c.Name)
-				.IsRequired();
+				.Property(c => c.Name);
 
 			modelBuilder.Entity<TelegramClient>()
-				.Property(c => c.PhoneNumber)
-				.IsRequired();
+				.Property(c => c.PhoneNumber);
 
 			modelBuilder.Entity<TelegramClient>()
 				.Property(c => c.DateRegistered)

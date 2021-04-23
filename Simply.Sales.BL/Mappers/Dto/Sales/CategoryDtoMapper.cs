@@ -14,20 +14,30 @@ namespace Simply.Sales.BLL.Mappers.Dto.Sales {
 			_productDtoMapper = productDtoMapper;
 		}
 
-		public Category BackMap(CategoryDto source) =>
-			new Category {
+		public Category BackMap(CategoryDto source) {
+			if (source == null) {
+				return null;
+			}
+
+			return new Category {
 				Id = source.Id,
 				Name = source.Name,
 				IsVisible = source.IsVisible,
 				Products = source.Products.Select(p => _productDtoMapper.BackMap(p))
 			};
+		}
 
-		public CategoryDto Map(Category source) =>
-			new CategoryDto {
+		public CategoryDto Map(Category source) {
+			if (source == null) {
+				return null;
+			}
+
+			return new CategoryDto {
 				Id = source.Id,
 				Name = source.Name,
 				IsVisible = source.IsVisible,
 				Products = source.Products.Select(p => _productDtoMapper.Map(p))
 			};
+		}
 	}
 }

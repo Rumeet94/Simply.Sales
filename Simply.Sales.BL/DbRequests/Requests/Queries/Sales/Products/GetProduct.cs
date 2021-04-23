@@ -2,10 +2,10 @@
 
 using MediatR;
 
-using Simply.Sales.DLL.Models.Sales;
+using Simply.Sales.BLL.Dto.Sales;
 
 namespace Simply.Sales.BLL.DbRequests.Requests.Queries.Sales.Products {
-	public class GetProduct : IRequest<Product> {
+	public class GetProduct : IRequest<ProductDto> {
 		public GetProduct(int id) {
 			Contract.Requires(id > 0);
 

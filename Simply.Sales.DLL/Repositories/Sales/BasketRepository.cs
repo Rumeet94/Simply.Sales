@@ -20,9 +20,11 @@ namespace Simply.Sales.DLL.Repositories.Sales {
 			_context = context;
 		}
 
-		public void Create(BasketItem item) {
+		public int Create(BasketItem item) {
 			_context.Baskets.Add(item);
 			_context.SaveChanges();
+
+			return item.Id;
 		}
 
 		public void Delete(int id) {

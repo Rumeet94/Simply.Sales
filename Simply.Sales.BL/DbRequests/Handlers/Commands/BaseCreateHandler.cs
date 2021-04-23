@@ -8,7 +8,7 @@ using Simply.Sales.DLL.Models;
 using Simply.Sales.DLL.Repositories;
 
 namespace Simply.Sales.BLL.DbRequests.Handlers.Commands {
-	public class BaseCreateHandler {
+	public abstract class BaseCreateHandler {
 		private readonly IServiceProvider _serviceProvider;
 
 		public BaseCreateHandler(IServiceProvider serviceProvider) {

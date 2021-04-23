@@ -2,10 +2,10 @@
 
 using MediatR;
 
-using Simply.Sales.DLL.Models.Clients;
+using Simply.Sales.BLL.Dto.Clients;
 
 namespace Simply.Sales.BLL.DbRequests.Requests.Queries.Clients.Clients {
-	public class GetClient : IRequest<TelegramClient> {
+	public class GetClient : IRequest<TelegramClientDto> {
 		public GetClient(int id) {
 			Contract.Requires(id > 0);
 

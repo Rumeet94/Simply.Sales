@@ -2,9 +2,9 @@
 
 using MediatR;
 
-using Simply.Sales.DLL.Models.Clients;
+using Simply.Sales.BLL.Dto.Clients;
 
 namespace Simply.Sales.BLL.DbRequests.Requests.Queries.Clients.Actions {
-	public class GetClientActions : IRequest<IEnumerable<ClientAction>> {
+	public class GetClientActions : IRequest<IEnumerable<ClientActionDto>> {
 	}
 }

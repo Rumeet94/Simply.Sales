@@ -10,7 +10,7 @@ namespace Simply.Sales.DLL.Models.Clients {
 
 		public ClientActionType ActionType { get; set; }
 
-		public DateTime DateCompleted { get; set; }
+		public DateTime? DateCompleted { get; set; }
 
 		public TelegramClient Client { get; set; }
 	}

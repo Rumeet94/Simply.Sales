@@ -2,9 +2,9 @@
 
 using MediatR;
 
-using Simply.Sales.DLL.Models.Clients;
+using Simply.Sales.BLL.Dto.Clients;
 
 namespace Simply.Sales.BLL.DbRequests.Requests.Queries.Clients.Clients {
-	public class GetClients : IRequest<IEnumerable<TelegramClient>> {
+	public class GetClients : IRequest<IEnumerable<TelegramClientDto>> {
 	}
 }

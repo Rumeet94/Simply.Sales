@@ -1,8 +1,9 @@
 ﻿namespace Simply.Sales.BLL.Dto.Clients.Enums {
 	public enum ClientActionTypeDto {
 		NotSpecified = 0,
-		Introduce = 1,
-		Order = 2,
-		Support = 3
+		Registration = 1,
+		Introduce = 2,
+		Order = 3,
+		Support = 4
 	}
 }

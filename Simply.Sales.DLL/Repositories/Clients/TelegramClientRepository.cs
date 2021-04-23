@@ -17,9 +17,11 @@ namespace Simply.Sales.DLL.Repositories.Clients {
 			_context = context;
 		}
 
-		public void Create(TelegramClient item) {
+		public int Create(TelegramClient item) {
 			_context.Clients.Add(item);
 			_context.SaveChanges();
+
+			return item.Id;
 		}
 
 		public void Delete(int id) {

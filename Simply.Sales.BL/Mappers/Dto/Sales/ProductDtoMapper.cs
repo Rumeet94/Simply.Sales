@@ -15,12 +15,17 @@ namespace Simply.Sales.BLL.Mappers.Dto.Sales {
 		) {
 			Contract.Requires(categoryDtoMapper != null);
 			Contract.Requires(basketDtoMapper != null);
+
 			_categoryDtoMapper = categoryDtoMapper;
 			_basketDtoMapper = basketDtoMapper;
 		}
 
-		public Product BackMap(ProductDto source) =>
-			new Product {
+		public Product BackMap(ProductDto source) {
+			if (source == null) {
+				return null;
+			}
+
+			return new Product {
 				Id = source.Id,
 				CategoryId = source.CategoryId,
 				Name = source.Name,
@@ -29,9 +34,14 @@ namespace Simply.Sales.BLL.Mappers.Dto.Sales {
 				Category = _categoryDtoMapper.BackMap(source.Category),
 				Baskets = source.Baskets.Select(b => _basketDtoMapper.BackMap(b))
 			};
+		}
 
-		public ProductDto Map(Product source) =>
-			new ProductDto {
+		public ProductDto Map(Product source) {
+			if (source == null) {
+				return null;
+			}
+
+			return new ProductDto {
 				Id = source.Id,
 				CategoryId = source.CategoryId,
 				Name = source.Name,
@@ -40,5 +50,6 @@ namespace Simply.Sales.BLL.Mappers.Dto.Sales {
 				Category = _categoryDtoMapper.Map(source.Category),
 				Baskets = source.Baskets.Select(b => _basketDtoMapper.Map(b))
 			};
+		}
 	}
 }

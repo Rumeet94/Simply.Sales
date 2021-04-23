@@ -13,7 +13,7 @@ namespace Simply.Sales.DLL.Repositories {
 
 		T GetSingle(int id);
 
-		void Create(T item);
+		int Create(T item);
 
 		void Update(T item);
 
@@ -28,7 +28,7 @@ namespace Simply.Sales.DLL.Repositories {
 		Task<T> GetSingleAsync(int id) =>
 			Task.Run(() => GetSingle(id));
 
-		Task CreateAsync(T item) =>
+		Task<int> CreateAsync(T item) =>
 			Task.Run(() => Create(item));
 
 		Task UpdateAsync(T item) =>

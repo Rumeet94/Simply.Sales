@@ -2,10 +2,10 @@
 
 using MediatR;
 
-using Simply.Sales.DLL.Models.Settings;
+using Simply.Sales.BLL.Dto.Settings;
 
 namespace Simply.Sales.BLL.DbRequests.Requests.Queries.Settings {
-	public class GetSetting : IRequest<Setting> {
+	public class GetSetting : IRequest<SettingDto> {
 		public GetSetting(int id) {
 			Contract.Requires(id > 0);
 

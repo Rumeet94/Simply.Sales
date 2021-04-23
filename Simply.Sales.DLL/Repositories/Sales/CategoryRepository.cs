@@ -19,9 +19,11 @@ namespace Simply.Sales.DLL.Repositories.Sales {
 			_context = context;
 		}
 
-		public void Create(Category item) {
+		public int Create(Category item) {
 			_context.Categories.Add(item);
 			_context.SaveChanges();
+
+			return item.Id;
 		}
 
 		public void Delete(int id) {

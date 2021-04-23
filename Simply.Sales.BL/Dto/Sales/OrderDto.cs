@@ -12,9 +12,9 @@ namespace Simply.Sales.BLL.Dto.Sales {
 
 		public OrderStateDto OrderState { get; set; }
 
-		public DateTime DatePaided { get; set; }
+		public DateTime? DatePaided { get; set; }
 
-		public DateTime DateCompleted { get; set; }
+		public DateTime? DateCompleted { get; set; }
 
 		public IEnumerable<BasketItemDto> Basket { get; set; }
 

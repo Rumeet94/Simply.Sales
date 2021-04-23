@@ -24,8 +24,12 @@ namespace Simply.Sales.BLL.Mappers.Dto.Sales {
 			_basketDtoMapper = basketDtoMapper;
 		}
 
-		public Order BackMap(OrderDto source) =>
-			new Order {
+		public Order BackMap(OrderDto source) {
+			if (source == null) {
+				return null;
+			}
+
+			return new Order {
 				Id = source.Id,
 				ClientId = source.ClientId,
 				DateCreated = source.DateCreated,
@@ -36,9 +40,14 @@ namespace Simply.Sales.BLL.Mappers.Dto.Sales {
 				Basket = source.Basket.Select(b => _basketDtoMapper.BackMap(b)),
 				Client = _clientDtoMapper.BackMap(source.Client)
 			};
+		}
 
-		public OrderDto Map(Order source) =>
-			new OrderDto {
+		public OrderDto Map(Order source) {
+			if (source == null) {
+				return null;
+			}
+
+			return new OrderDto {
 				Id = source.Id,
 				ClientId = source.ClientId,
 				DateCreated = source.DateCreated,
@@ -49,5 +58,6 @@ namespace Simply.Sales.BLL.Mappers.Dto.Sales {
 				Basket = source.Basket.Select(b => _basketDtoMapper.Map(b)),
 				Client = _clientDtoMapper.Map(source.Client)
 			};
+		}
 	}
 }

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-using Simply.Sales.DLL.Models.Sales;
+using Simply.Sales.BLL.Dto.Sales;
 
 namespace Simply.Sales.BLL.Dto.Clients {
 	public class TelegramClientDto : BaseDto {
@@ -15,6 +15,6 @@ namespace Simply.Sales.BLL.Dto.Clients {
 
 		public IEnumerable<ClientActionDto> Actions { get; set; }
 
-		public IEnumerable<Order> Orders { get; set; }
+		public IEnumerable<OrderDto> Orders { get; set; }
 	}
 }

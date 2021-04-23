@@ -9,7 +9,7 @@ namespace Simply.Sales.BLL.Dto.Clients {
 
 		public ClientActionTypeDto ActionType { get; set; }
 
-		public DateTime DateCompleted { get; set; }
+		public DateTime? DateCompleted { get; set; }
 
 		public TelegramClientDto Client { get; set; }
 	}

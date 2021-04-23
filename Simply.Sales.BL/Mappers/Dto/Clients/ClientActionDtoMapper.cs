@@ -15,8 +15,12 @@ namespace Simply.Sales.BLL.Mappers.Dto.Clients {
 			_clientDtoMapper = clientDtoMapper;
 		}
 
-		public ClientAction BackMap(ClientActionDto source) =>
-			new ClientAction {
+		public ClientAction BackMap(ClientActionDto source) {
+			if (source == null) {
+				return null;
+			}	
+
+			return new ClientAction {
 				Id = source.Id,
 				ClientId = source.ClientId,
 				DateCreated = source.DateCreated,
@@ -24,15 +28,21 @@ namespace Simply.Sales.BLL.Mappers.Dto.Clients {
 				DateCompleted = source.DateCompleted,
 				Client = _clientDtoMapper.BackMap(source.Client)
 			};
+		}
 
-		public ClientActionDto Map(ClientAction source) =>
-			new ClientActionDto {
+		public ClientActionDto Map(ClientAction source) {
+			if (source == null) {
+				return null;
+			}
+
+			return new ClientActionDto {
 				Id = source.Id,
 				ClientId = source.ClientId,
 				DateCreated = source.DateCreated,
-				ActionType = (ClientActionTypeDto) source.ActionType,
+				ActionType = (ClientActionTypeDto)source.ActionType,
 				DateCompleted = source.DateCompleted,
 				Client = _clientDtoMapper.Map(source.Client)
 			};
+		}
 	}
 }

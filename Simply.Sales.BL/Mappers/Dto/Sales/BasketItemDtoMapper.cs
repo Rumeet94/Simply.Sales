@@ -16,22 +16,32 @@ namespace Simply.Sales.BLL.Mappers.Dto.Sales {
 			_orderDtoMapper = orderDtoMapper;
 		}
 
-		public BasketItem BackMap(BasketItemDto source) =>
-			new BasketItem {
+		public BasketItem BackMap(BasketItemDto source) {
+			if (source == null) {
+				return null;
+			}
+
+			return new BasketItem {
 				Id = source.Id,
 				OrderId = source.OrderId,
 				ProductId = source.ProductId,
 				Product = _productDtoMapper.BackMap(source.Product),
 				Order = _orderDtoMapper.BackMap(source.Order)
 			};
+		}
 
-		public BasketItemDto Map(BasketItem source) =>
-			new BasketItemDto {
+		public BasketItemDto Map(BasketItem source) {
+			if (source == null) {
+				return null;
+			}
+
+			return new BasketItemDto {
 				Id = source.Id,
 				OrderId = source.OrderId,
 				ProductId = source.ProductId,
 				Product = _productDtoMapper.Map(source.Product),
 				Order = _orderDtoMapper.Map(source.Order)
 			};
+		}
 	}
 }

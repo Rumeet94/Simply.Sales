@@ -17,9 +17,11 @@ namespace Simply.Sales.DLL.Repositories.Settings {
 			_context = context;
 		}
 
-		public void Create(Setting item) {
+		public int Create(Setting item) {
 			_context.Settings.Add(item);
 			_context.SaveChanges();
+
+			return item.Id;
 		}
 
 		public void Delete(int id) {

@@ -12,9 +12,9 @@ namespace Simply.Sales.TelegramBot.Controllers {
 	[Route("api/telegram-bot")]
 	[ApiController]
 	public class TelegramBotApiController : ControllerBase {
-		private readonly ITelegramBotService _botService;
+		private readonly IBotService _botService;
 
-		public TelegramBotApiController(ITelegramBotService botService) {
+		public TelegramBotApiController(IBotService botService) {
 			Contract.Requires(botService != null);
 
 			_botService = botService;

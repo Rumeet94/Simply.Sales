@@ -2,9 +2,9 @@
 
 using MediatR;
 
-using Simply.Sales.DLL.Models.Sales;
+using Simply.Sales.BLL.Dto.Sales;
 
 namespace Simply.Sales.BLL.DbRequests.Requests.Queries.Sales.Baskets {
-	public class GetBasketItems : IRequest<IEnumerable<BasketItem>> {
+	public class GetBasketItems : IRequest<IEnumerable<BasketItemDto>> {
 	}
 }

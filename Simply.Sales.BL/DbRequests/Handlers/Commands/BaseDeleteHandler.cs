@@ -8,7 +8,7 @@ using Simply.Sales.DLL.Models;
 using Simply.Sales.DLL.Repositories;
 
 namespace Simply.Sales.BLL.DbRequests.Handlers.Commands {
-	public class BaseDeleteHandler {
+	public abstract class BaseDeleteHandler {
 		private readonly IServiceProvider _serviceProvider;
 
 		public BaseDeleteHandler(IServiceProvider serviceProvider) {

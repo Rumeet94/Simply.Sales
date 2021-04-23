@@ -11,7 +11,7 @@ using Simply.Sales.BLL.Mappers;
 using Simply.Sales.DLL.Models.Sales;
 
 namespace Simply.Sales.BLL.DbRequests.Handlers.Commands.Sales.Orders {
-	public class AddOrderHandler : BaseCreateHandler, IRequestHandler<AddOrder> {
+	public class AddOrderHandler : BaseCreateHandler, IRequestHandler<AddOrder, int> {
 		private readonly IMapper<Order, OrderDto> _mapper;
 
 		public AddOrderHandler(IServiceProvider serviceProvider, IMapper<Order, OrderDto> mapper)
@@ -21,12 +21,12 @@ namespace Simply.Sales.BLL.DbRequests.Handlers.Commands.Sales.Orders {
 			_mapper = mapper;
 		}
 
-		public async Task<Unit> Handle(AddOrder request, CancellationToken cancellationToken) {
+		public async Task<int> Handle(AddOrder request, CancellationToken cancellationToken) {
 			var order = _mapper.BackMap(request.Dto);
 
 			await Handle(order);
 
-			return Unit.Value;
+			return order.Id;
 		}
 	}
 }
