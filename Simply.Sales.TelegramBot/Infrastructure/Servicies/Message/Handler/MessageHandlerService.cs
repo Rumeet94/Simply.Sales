@@ -59,66 +59,51 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Servicies.Message.Handler {
 				return;
 			}
 
-			var clientAction = await _clientActionProvider.GetLastActionType(message.Chat.Id);
-			if (clientAction == null || clientAction.ActionType == ClientActionTypeDto.Order) {
-				var keyboard = await _messageFactory.CreateKeyboard(new SelectItem { Type = IncomeMessageType.Home, ChatId = message.Chat.Id });
+			var client = await _mediator.Send(new GetClientByTelegramChatId(message.Chat.Id));
+			if (client == null) {
+				await _clientService.Registration(message.Chat.Id, message.From.FirstName);
 
-				await _messageService.SendKeyboardMessage(message.Chat.Id, keyboard);
+				var text = "Что я умею? \n\n" +
+					"Через меня Вы можете заказать вкусный кофе, чай и много чего еще." +
+					"Заказ будет готов к Вашему приходу. Вам останется только забрать его и получать удовольствие. 😊 \n\n" +
+					(string.IsNullOrWhiteSpace(message.From.FirstName)
+						? "Давайте знакомиться. Как Вас зовут?"
+						: $"{message.From.FirstName}, укажите, пожалуйста, Ваш контактный номер телефона, " +
+							$" чтобы мы могли связаться с Вами в случае появления каких-либо вопросов.");
+
+				await _messageService.SendTextMessage(message.Chat.Id, text);
 
 				return;
 			}
 
-			switch (clientAction.ActionType) {
-				case ClientActionTypeDto.Registration: {
-					await _clientService.Registration(message.Chat.Id, message.From.FirstName);
+			if (string.IsNullOrWhiteSpace(client.Name)) {
+				client.Name = message.Text;
 
-					var text = "Что может делать этот бот? \n\n" +
-						"Через меня Вы можете заказать вкусный кофе, чай и много чего еще." +
-						"Заказ будет готов к Вашему приходу. Вам останеться только забрать его и получать удовольствие. 😊 \n\n" +
-						(string.IsNullOrWhiteSpace(message.From.FirstName)
-							? "Давайте знакомиться. Как Вас зовут?"
-							: $"{message.From.FirstName}, укажите, пожалуйста, Ваш контактный номер телефона, " +
-								$" чтобы мы могли связаться с Вами в случае появления каких-либо вопросов.");
+				await _mediator.Send(new UpdateTelegramClient(client));
+				await _messageService.SendTextMessage(
+					message.Chat.Id,
+					$"{message.From.FirstName}, укажите, пожалуйста, Ваш контактный номер телефона, " +
+						$" чтобы мы могли связаться с Вами в случае появления каких-либо вопросов."
+				);
 
-					await _messageService.SendTextMessage(message.Chat.Id, text);
-
-					break;
-				}
-				case ClientActionTypeDto.Introduce: {
-					var client = await _mediator.Send(new GetClientByTelegramChatId(message.Chat.Id));
-
-					if (string.IsNullOrWhiteSpace(client.Name)) {
-						client.Name = message.Text;
-
-						await _mediator.Send(new UpdateTelegramClient(client));
-						await _messageService.SendTextMessage(
-							message.Chat.Id,
-							$"{message.From.FirstName}, укажите, пожалуйста, Ваш контактный номер телефона, " +
-								$" чтобы мы могли связаться с Вами в случае появления каких-либо вопросов."
-						);
-
-						break;
-					}
-
-					if (!message.Text.ValidatePhoneNumber(true)) {
-						await _messageService.SendTextMessage(message.Chat.Id, "Укажите корректный номер телефона, чтобы мы могли с Вами связаться.");
-
-						break;
-					}
-
-					client.PhoneNumber = message.Text;
-					clientAction.DateCompleted = DateTime.Now;
-
-					await _mediator.Send(new UpdateTelegramClient(client));
-					await _mediator.Send(new UpdateClientAction(clientAction));
-
-					var keyboard = await _messageFactory.CreateKeyboard(new SelectItem { Type = IncomeMessageType.Home, ChatId = message.Chat.Id });
-
-					await _messageService.SendKeyboardMessage(client.ChatId, keyboard);
-					
-					break;
-				}
+				return;
 			}
+
+			if (string.IsNullOrWhiteSpace(client.PhoneNumber)) {
+				if (!message.Text.ValidatePhoneNumber(true)) {
+					await _messageService.SendTextMessage(message.Chat.Id, "Укажите корректный номер телефона.");
+
+					return;
+				}
+
+				client.PhoneNumber = message.Text;
+
+				await _mediator.Send(new UpdateTelegramClient(client));
+			}
+
+			var keyboard = await _messageFactory.CreateKeyboard(new SelectItem { Type = IncomeMessageType.Home, ChatId = message.Chat.Id });
+
+			await _messageService.SendKeyboardMessage(client.ChatId, keyboard);
 		}
 
 		public async Task HandleKeyboard(CallbackQuery callback) {
@@ -128,17 +113,6 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Servicies.Message.Handler {
 
 			var selectItem = JsonSerializer.Deserialize<SelectItem>(callback.Data);
 			var client = await _mediator.Send(new GetClientByTelegramChatId(callback.Message.Chat.Id));
-			
-			if (selectItem.Type == IncomeMessageType.Categories && client == null) {
-				//var client = await _mediator.Send(new GetClientByTelegramChatId(callback.Message.Chat.Id));
-				//var newClientAction = new ClientActionDto {
-				//	ActionType = ClientActionTypeDto.Order,
-				//	ClientId = client.Id,
-				//	DateCreated = DateTime.Now
-				//};
-
-				//await _mediator.Send(new AddClientAction(newClientAction));
-			}
 
 			if (selectItem.Type == IncomeMessageType.Basket) {
 				var order = client?.Orders?.FirstOrDefault(o => !o.DateCompleted.HasValue);
@@ -172,7 +146,6 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Servicies.Message.Handler {
 
 					var basket = await _mediator.Send(new GetBasketByOrderId(order.Id));
 					var categories = await _mediator.Send(new GetCategories());
-
 
 					var text = $"Клиент {client.Name} ({client.PhoneNumber}) " +
 						$"подтвердил(а) оплату заказа №{order.Id}. Проверьте зачисление средств ({basket.Select(b => b.Product.Price).Sum()} рублей). \n\n" +

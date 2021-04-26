@@ -51,7 +51,7 @@ namespace Simply.Sales.DLL.Repositories.Clients {
 				.FirstOrDefault(c => c.Id == id);
 
 		public void Update(TelegramClient item) {
-			_context.Clients.Update(item);
+			_context.Update(item);
 			_context.SaveChanges();
 		}
 	}

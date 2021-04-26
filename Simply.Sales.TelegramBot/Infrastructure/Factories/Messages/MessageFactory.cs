@@ -38,7 +38,7 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 
 			if (selectItem.Type == IncomeMessageType.Address) {
 				var text = "Mы находимся по адресу: улица Минаева, д. 11, ТРК Спартак \n" +
-					@"наш инстаграм: https://www.instagram.com/lemarche.coffee";
+					@"Наш инстаграм: https://www.instagram.com/lemarche.coffee";
 				var keyboard = await GetHomeKeyboard(selectItem.ChatId);
 				var markup = new InlineKeyboardMarkup(keyboard);
 
@@ -99,11 +99,14 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 				var order = client.Orders?.FirstOrDefault(o => !o.DateCompleted.HasValue);
 				var basket = await _mediator.Send(new GetBasketByOrderId(order.Id));
 				var keyboard = GetPaidKeyboard(basket.Select(b => b.Product.Price).Sum());
+				var categories = await _mediator.Send(new GetCategories());
 
 				var markup = new InlineKeyboardMarkup(keyboard);
-				var text = string.Join(";\n", order.Basket.Select(b => $"{b.Product.Name} - {b.Product.Price} рублей"));
+				var text = "Ваш заказ:\n\n" +
+					string.Join(";\n", basket.Select(b => $"{categories.FirstOrDefault(c => c.Id == b.Product.CategoryId).Name} {b.Product.Name} - " +
+						$"{b.Product.Price} рублей"));
 
-				return new Keyboard(markup, "Выберите действие:");
+				return new Keyboard(markup, text);
 			}
 
 			if (selectItem.Type == IncomeMessageType.Paymented) {

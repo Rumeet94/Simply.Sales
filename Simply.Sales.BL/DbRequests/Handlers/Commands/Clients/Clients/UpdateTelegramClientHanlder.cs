@@ -34,7 +34,7 @@ namespace Simply.Sales.BLL.DbRequests.Handlers.Commands.Clients.Clients {
 
 				var repository = scope.ServiceProvider.GetRequiredService<IDbRepository<TelegramClient>>();
 
-				await repository.UpdateAsync(client).ConfigureAwait(false);
+				await repository.UpdateAsync(client);
 			}
 			catch (Exception e) {
 				throw e.InnerException;
