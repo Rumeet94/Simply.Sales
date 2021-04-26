@@ -8,6 +8,7 @@
 		CleanBasket = 5,
 		Paid = 6,
 		Paymented = 7,
-		Address = 8
+		Address = 8,
+		Contacts = 9
 	}
 }

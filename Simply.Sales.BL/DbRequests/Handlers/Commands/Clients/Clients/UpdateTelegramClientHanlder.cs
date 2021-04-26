@@ -3,28 +3,42 @@ using System.Diagnostics.Contracts;
 using System.Threading;
 using System.Threading.Tasks;
 
+using AutoMapper;
+
 using MediatR;
 
+using Microsoft.Extensions.DependencyInjection;
+
 using Simply.Sales.BLL.DbRequests.Requests.Commands.Clients.Clients;
-using Simply.Sales.BLL.Dto.Clients;
-using Simply.Sales.BLL.Mappers;
 using Simply.Sales.DLL.Models.Clients;
+using Simply.Sales.DLL.Repositories;
 
 namespace Simply.Sales.BLL.DbRequests.Handlers.Commands.Clients.Clients {
-	public class UpdateTelegramClientHanlder : BaseUpdateHandler, IRequestHandler<UpdateTelegramClient> {
-		private readonly IMapper<TelegramClient, TelegramClientDto> _mapper;
+	public class UpdateTelegramClientHanlder : IRequestHandler<UpdateTelegramClient> {
+		private readonly IServiceProvider _serviceProvider;
+		private readonly IMapper _mapper;
 
-		public UpdateTelegramClientHanlder(IServiceProvider serviceProvider, IMapper<TelegramClient, TelegramClientDto> mapper)
-			: base(serviceProvider) {
+		public UpdateTelegramClientHanlder(IServiceProvider serviceProvider, IMapper mapper) {
+			Contract.Requires(serviceProvider != null);
 			Contract.Requires(mapper != null);
 
+			_serviceProvider = serviceProvider;
 			_mapper = mapper;
 		}
 
 		public async Task<Unit> Handle(UpdateTelegramClient request, CancellationToken cancellationToken) {
-			var client = _mapper.BackMap(request.Dto);
+			var client = _mapper.Map<TelegramClient>(request.Dto);
 
-			await Handle(client);
+			try {
+				using var scope = _serviceProvider.CreateScope();
+
+				var repository = scope.ServiceProvider.GetRequiredService<IDbRepository<TelegramClient>>();
+
+				await repository.UpdateAsync(client).ConfigureAwait(false);
+			}
+			catch (Exception e) {
+				throw e.InnerException;
+			}
 
 			return Unit.Value;
 		}

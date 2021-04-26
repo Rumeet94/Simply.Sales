@@ -3,8 +3,6 @@ using System.Diagnostics.Contracts;
 using System.Threading;
 using System.Threading.Tasks;
 
-using AutoMapper;
-
 using MediatR;
 
 using Microsoft.Extensions.DependencyInjection;
@@ -14,27 +12,24 @@ using Simply.Sales.DLL.Models.Sales;
 using Simply.Sales.DLL.Repositories;
 
 namespace Simply.Sales.BLL.DbRequests.Handlers.Commands.Sales.Baskets {
-	public class UpdateBasketItemHanlder : IRequestHandler<UpdateBasketItem> {
+	public class DeleteBasketHandler : IRequestHandler<DeleteBasket> {
 		private readonly IServiceProvider _serviceProvider;
-		private readonly IMapper _mapper;
 
-		public UpdateBasketItemHanlder(IServiceProvider serviceProvider, IMapper mapper) {
+		public DeleteBasketHandler(IServiceProvider serviceProvider) {
 			Contract.Requires(serviceProvider != null);
-			Contract.Requires(mapper != null);
 
 			_serviceProvider = serviceProvider;
-			_mapper = mapper;
 		}
 
-		public async Task<Unit> Handle(UpdateBasketItem request, CancellationToken cancellationToken) {
-			var client = _mapper.Map<BasketItem>(request.Dto);
-
+		public async Task<Unit> Handle(DeleteBasket request, CancellationToken cancellationToken) {
 			try {
 				using var scope = _serviceProvider.CreateScope();
 
 				var repository = scope.ServiceProvider.GetRequiredService<IDbRepository<BasketItem>>();
 
-				await repository.UpdateAsync(client);
+				foreach (var id in request.BasketItemsIds) {
+					await repository.DeleteAsync(id);
+				}
 			}
 			catch (Exception e) {
 				throw e.InnerException;
@@ -44,3 +39,4 @@ namespace Simply.Sales.BLL.DbRequests.Handlers.Commands.Sales.Baskets {
 		}
 	}
 }
+

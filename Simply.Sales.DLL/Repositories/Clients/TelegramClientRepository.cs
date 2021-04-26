@@ -4,6 +4,8 @@ using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Linq.Expressions;
 
+using Microsoft.EntityFrameworkCore;
+
 using Simply.Sales.DLL.Context;
 using Simply.Sales.DLL.Models.Clients;
 
@@ -32,16 +34,24 @@ namespace Simply.Sales.DLL.Repositories.Clients {
 		}
 
 		public IEnumerable<TelegramClient> Get() =>
-			_context.Clients;
+			_context.Clients
+				.Include(c => c.Actions)
+				.Include(c => c.Orders);
 
 		public IEnumerable<TelegramClient> Get(Expression<Func<TelegramClient, bool>> predicate) =>
-			_context.Clients.Where(predicate);
+			_context.Clients
+				.Where(predicate)
+				.Include(c => c.Actions)
+				.Include(c => c.Orders);
 
 		public TelegramClient GetSingle(int id) =>
-			_context.Clients.FirstOrDefault(c => c.Id == id);
+			_context.Clients
+				.Include(c => c.Actions)
+				.Include(c => c.Orders)
+				.FirstOrDefault(c => c.Id == id);
 
 		public void Update(TelegramClient item) {
-			_context.Update(item);
+			_context.Clients.Update(item);
 			_context.SaveChanges();
 		}
 	}

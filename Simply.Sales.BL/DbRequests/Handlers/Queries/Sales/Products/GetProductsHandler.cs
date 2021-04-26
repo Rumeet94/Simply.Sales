@@ -1,31 +1,38 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
+using AutoMapper;
+
 using MediatR;
 
-using Simply.Sales.BLL.DbRequests.Handlers.Queries;
+using Microsoft.Extensions.DependencyInjection;
+
 using Simply.Sales.BLL.Dto.Sales;
-using Simply.Sales.BLL.Mappers;
 using Simply.Sales.DLL.Models.Sales;
+using Simply.Sales.DLL.Repositories;
 
 namespace Simply.Sales.BLL.DbRequests.Requests.Queries.Sales.Products {
-	public class GetProductsHandler : BaseGetHandler, IRequestHandler<GetProducts, IEnumerable<ProductDto>> {
-		private readonly IMapper<Product, ProductDto> _mapper;
+	public class GetProductsHandler : IRequestHandler<GetProducts, IEnumerable<ProductDto>> {
+		private readonly IServiceProvider _serviceProvider;
+		private readonly IMapper _mapper;
 
-		public GetProductsHandler(IServiceProvider serviceProvider, IMapper<Product, ProductDto> mapper)
-			: base(serviceProvider) {
+		public GetProductsHandler(IServiceProvider serviceProvider, IMapper mapper) {
 			Contract.Requires(mapper != null);
-
+			_serviceProvider = serviceProvider;
 			_mapper = mapper;
 		}
 
 		public async Task<IEnumerable<ProductDto>> Handle(GetProducts request, CancellationToken cancellationToken) {
-			var items = await Handle<Product>();
+			using var scope = _serviceProvider.CreateScope();
 
-			return _mapper.MapList(items);
+			var repository = scope.ServiceProvider.GetRequiredService<IDbRepository<Product>>();
+			var items = await repository.GetAsync();
+
+			return items.ToList().Select(i => _mapper.Map<ProductDto>(i));
 		}
 	}
 }

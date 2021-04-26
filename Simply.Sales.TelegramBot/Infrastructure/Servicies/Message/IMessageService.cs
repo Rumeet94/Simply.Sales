@@ -8,6 +8,8 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Servicies.Message {
 
 		Task SendKeyboardMessage(long chatId, Keyboard keyboard);
 
-		Task SendImageMessage();
+		Task SendImageMessage(long chatId, string url, Keyboard keyboard);
+
+		Task DeleteMessage(long chatId, int messageId);
 	}
 }

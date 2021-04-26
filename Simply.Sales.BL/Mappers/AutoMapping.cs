@@ -15,8 +15,10 @@ namespace Simply.Sales.BLL.Mappers {
 			CreateMap<TelegramClient, TelegramClientDto>();
 			CreateMap<TelegramClientDto, TelegramClient>();
 
-			CreateMap<BasketItem, BasketItemDto>();
-			CreateMap<BasketItemDto, BasketItemDto>();
+			CreateMap<BasketItem, BasketItemDto>()
+				.ForMember(m => m.Order, n => n.MapFrom(o => o.Order))
+				.ForMember(m => m.Product, n => n.MapFrom(o => o.Product))
+				.ReverseMap();
 			CreateMap<Category, CategoryDto>();
 			CreateMap<CategoryDto, Category>();
 			CreateMap<Order, OrderDto>();

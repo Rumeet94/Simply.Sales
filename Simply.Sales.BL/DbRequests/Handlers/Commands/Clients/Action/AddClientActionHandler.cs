@@ -3,28 +3,40 @@ using System.Diagnostics.Contracts;
 using System.Threading;
 using System.Threading.Tasks;
 
+using AutoMapper;
+
 using MediatR;
 
+using Microsoft.Extensions.DependencyInjection;
+
 using Simply.Sales.BLL.DbRequests.Requests.Queries.Clients.Actions;
-using Simply.Sales.BLL.Dto.Clients;
-using Simply.Sales.BLL.Mappers;
 using Simply.Sales.DLL.Models.Clients;
+using Simply.Sales.DLL.Repositories;
 
 namespace Simply.Sales.BLL.DbRequests.Handlers.Commands.Clients.Action {
-	public class AddClientActionHandler : BaseCreateHandler, IRequestHandler<AddClientAction> {
-		private readonly IMapper<ClientAction, ClientActionDto> _mapper;
+	public class AddClientActionHandler : IRequestHandler<AddClientAction> {
+		private readonly IServiceProvider _serviceProvider;
+		private readonly IMapper _mapper;
 
-		public AddClientActionHandler(IServiceProvider serviceProvider, IMapper<ClientAction, ClientActionDto> mapper)
-			: base(serviceProvider) {
+		public AddClientActionHandler(IServiceProvider serviceProvider, IMapper mapper) {
 			Contract.Requires(mapper != null);
-
+			_serviceProvider = serviceProvider;
 			_mapper = mapper;
 		}
 
 		public async Task<Unit> Handle(AddClientAction request, CancellationToken cancellationToken) {
-			var action = _mapper.BackMap(request.Dto);
+			var client = _mapper.Map<ClientAction>(request.Dto);
 
-			await Handle(action);
+			try {
+				using var scope = _serviceProvider.CreateScope();
+
+				var repository = scope.ServiceProvider.GetRequiredService<IDbRepository<ClientAction>>();
+
+				await repository.CreateAsync(client);
+			}
+			catch (Exception e) {
+				throw e.InnerException;
+			}
 
 			return Unit.Value;
 		}

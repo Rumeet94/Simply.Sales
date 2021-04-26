@@ -14,7 +14,7 @@ namespace Simply.Sales.BLL.Mappers.Dto.Sales {
 		private readonly IMapper<BasketItem, BasketItemDto> _basketDtoMapper;
 
 		public OrderDtoMapper() {
-			_clientDtoMapper = new TelegramClientDtoMapper();
+			_clientDtoMapper = null;
 			_basketDtoMapper = new BasketItemDtoMapper();
 		}
 

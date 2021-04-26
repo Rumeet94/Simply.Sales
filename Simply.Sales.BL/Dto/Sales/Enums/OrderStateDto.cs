@@ -2,8 +2,8 @@
 	public enum OrderStateDto {
 		NotSpecified = 0,
 		Created = 1,
-		Payment = 2,
-		Paid = 3,
+		Paid = 2,
+		Paymented = 3,
 		Received = 4
 	}
 }

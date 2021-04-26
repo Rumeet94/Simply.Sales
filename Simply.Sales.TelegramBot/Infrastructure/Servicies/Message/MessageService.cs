@@ -1,10 +1,12 @@
-﻿using System.Diagnostics.Contracts;
+﻿using System;
+using System.Diagnostics.Contracts;
 using System.Threading.Tasks;
 
 using Simply.Sales.TelegramBot.Infrastructure.Items;
 
 using Telegram.Bot;
 using Telegram.Bot.Types.Enums;
+using Telegram.Bot.Types.InputFiles;
 
 namespace Simply.Sales.TelegramBot.Infrastructure.Servicies.Message {
 	public class MessageService : IMessageService {
@@ -17,7 +19,7 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Servicies.Message {
 		}
 
 		public async Task SendTextMessage(long chatId, string text) {
-			if (string.IsNullOrWhiteSpace(text) || chatId < 1) {
+			if (string.IsNullOrWhiteSpace(text)) {
 				return;
 			}
 
@@ -28,7 +30,7 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Servicies.Message {
 		}
 
 		public async Task SendKeyboardMessage(long chatId, Keyboard keyboard) {
-			if (keyboard == null || chatId < 1) {
+			if (keyboard == null) {
 				return;
 			}
 
@@ -40,8 +42,13 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Servicies.Message {
 			);
 		}
 
-		public async Task SendImageMessage() {
-	
+		public async Task SendImageMessage(long chatId, string url, Keyboard keyboard) {
+			var file = new InputOnlineFile(new Uri(url));
+			
+			await _botClient.SendPhotoAsync(chatId, file, keyboard.Text, replyMarkup: keyboard.Markup);
 		}
+
+		public async Task DeleteMessage(long chatId, int messageId) =>
+			await _botClient.DeleteMessageAsync(chatId, messageId);
 	}
 }

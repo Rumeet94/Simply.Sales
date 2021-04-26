@@ -33,16 +33,27 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Servicies.Bot {
 			}
 
 			await _botClient.SetWebhookAsync("");
-
 			_botClient.OnMessage += BotOnMessage;
 			_botClient.OnCallbackQuery += BotOnCallback;
 			_botClient.StartReceiving();
 		}
 
-		private async void BotOnMessage(object sender, MessageEventArgs eventMessage) =>
-			await _messageHandlerService.HandleText(eventMessage.Message);
+		private async void BotOnMessage(object sender, MessageEventArgs eventMessage) {
+			try {
+				await _messageHandlerService.HandleText(eventMessage.Message);
+			}
+			catch {
 
-		private async void BotOnCallback(object sender, CallbackQueryEventArgs eventCallback) =>
-			await _messageHandlerService.HandleKeyboard(eventCallback.CallbackQuery);
+			}
+		}
+
+		private async void BotOnCallback(object sender, CallbackQueryEventArgs eventCallback) {
+			try {
+				await _messageHandlerService.HandleKeyboard(eventCallback.CallbackQuery);
+			}
+			catch {
+
+			}
+		}
 	}
 }

@@ -29,7 +29,7 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Servicies.ClientAction {
 
 			var actionType = client.Actions
 				.OrderByDescending(a => a.DateCreated)
-				.FirstOrDefault();
+				.FirstOrDefault(a => !a.DateCompleted.HasValue);
 
 			return actionType;
 		}

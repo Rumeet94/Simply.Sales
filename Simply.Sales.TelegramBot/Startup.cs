@@ -17,10 +17,8 @@ using Simply.Sales.BLL.DbRequests.Handlers.Commands.Sales.Products;
 using Simply.Sales.BLL.DbRequests.Handlers.Commands.Settings;
 using Simply.Sales.BLL.DbRequests.Handlers.Queries.Clients.Actions;
 using Simply.Sales.BLL.DbRequests.Handlers.Queries.Clients.Clients;
-using Simply.Sales.BLL.DbRequests.Handlers.Queries.Sales.Baskets;
 using Simply.Sales.BLL.DbRequests.Handlers.Queries.Sales.Orders;
 using Simply.Sales.BLL.DbRequests.Handlers.Queries.Sales.Products;
-using Simply.Sales.BLL.DbRequests.Handlers.Queries.Settings;
 using Simply.Sales.BLL.DbRequests.Requests.Queries.Sales.Products;
 using Simply.Sales.BLL.Dto.Clients;
 using Simply.Sales.BLL.Dto.Sales;
@@ -70,10 +68,15 @@ namespace Simply.Sales.TelegramBot {
 
 			services.AddScoped<SalesDbContext>();
 
+			services.AddScoped<IDbRepository<TelegramClient>, TelegramClientRepository>();
+			services.AddScoped<IDbRepository<ClientAction>, ClientActionRepository>();
+
 			services.AddScoped<IDbRepository<Category>, CategoryRepository>();
 			services.AddScoped<IDbRepository<Product>, ProductRepository>();
+			services.AddScoped<IDbRepository<BasketItem>, BasketRepository>();
+			services.AddScoped<IDbRepository<Order>, OrderRepository>();
+
 			services.AddScoped<IDbRepository<Setting>, SettingRepository>();
-			services.AddScoped<IDbRepository<TelegramClient>, TelegramClientRepository>();
 
 			services.AddMediatR(typeof(Startup));
 			services.AddAutoMapper(c => c.AddProfile<AutoMapping>(), typeof(Startup));
@@ -123,7 +126,7 @@ namespace Simply.Sales.TelegramBot {
 				.AddMediatR(typeof(UpdateTelegramClientHanlder).GetTypeInfo().Assembly)
 
 				.AddMediatR(typeof(AddBasketItemHandler).GetTypeInfo().Assembly)
-				.AddMediatR(typeof(DeleteBasketItemHandler).GetTypeInfo().Assembly)
+				.AddMediatR(typeof(DeleteBasketHandler).GetTypeInfo().Assembly)
 				.AddMediatR(typeof(UpdateBasketItemHanlder).GetTypeInfo().Assembly)
 
 				.AddMediatR(typeof(AddOrderHandler).GetTypeInfo().Assembly)
@@ -141,28 +144,19 @@ namespace Simply.Sales.TelegramBot {
 		private static void AddQueryHandlers(IServiceCollection services) =>
 			services
 				.AddMediatR(typeof(GetClientActionHandler).GetTypeInfo().Assembly)
-				.AddMediatR(typeof(GetClientActionsHanlder).GetTypeInfo().Assembly)
 
-				.AddMediatR(typeof(GetClientHandler).GetTypeInfo().Assembly)
-				.AddMediatR(typeof(GetClientsHandler).GetTypeInfo().Assembly)
 				.AddMediatR(typeof(GetClientByTelegramChatIdHandler).GetTypeInfo().Assembly)
-
-				.AddMediatR(typeof(GetBasketItemHandler).GetTypeInfo().Assembly)
-				.AddMediatR(typeof(GetBasketItemsHandler).GetTypeInfo().Assembly)
 
 				.AddMediatR(typeof(GetOrderHandler).GetTypeInfo().Assembly)
 				.AddMediatR(typeof(GetOrdersHandler).GetTypeInfo().Assembly)
 
 				.AddMediatR(typeof(GetProductHandler).GetTypeInfo().Assembly)
-				.AddMediatR(typeof(GetProductsHandler).GetTypeInfo().Assembly)
-
-				.AddMediatR(typeof(GetSettingHandler).GetTypeInfo().Assembly)
-				.AddMediatR(typeof(GetSettingsHandler).GetTypeInfo().Assembly);
+				.AddMediatR(typeof(GetProductsHandler).GetTypeInfo().Assembly);
 
 		private static void AddMappers(IServiceCollection services) =>
 			services
 				.AddTransient<IMapper<ClientAction, ClientActionDto>, ClientActionDtoMapper>()
-				.AddTransient<IMapper<TelegramClient, TelegramClientDto>, TelegramClientDtoMapper>()
+				//.AddTransient<IMapper<TelegramClient, TelegramClientDto>, TelegramClientDtoMapper>()
 
 				.AddTransient<IMapper<BasketItem, BasketItemDto>, BasketItemDtoMapper>()
 				.AddTransient<IMapper<Category, CategoryDto>, CategoryDtoMapper>()

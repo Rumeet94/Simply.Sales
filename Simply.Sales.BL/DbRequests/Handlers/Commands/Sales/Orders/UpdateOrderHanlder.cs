@@ -3,28 +3,42 @@ using System.Diagnostics.Contracts;
 using System.Threading;
 using System.Threading.Tasks;
 
+using AutoMapper;
+
 using MediatR;
 
+using Microsoft.Extensions.DependencyInjection;
+
 using Simply.Sales.BLL.DbRequests.Requests.Commands.Sales.Orders;
-using Simply.Sales.BLL.Dto.Sales;
-using Simply.Sales.BLL.Mappers;
 using Simply.Sales.DLL.Models.Sales;
+using Simply.Sales.DLL.Repositories;
 
 namespace Simply.Sales.BLL.DbRequests.Handlers.Commands.Sales.Orders {
-	public class UpdateOrderHanlder : BaseUpdateHandler, IRequestHandler<UpdateOrder> {
-		private readonly IMapper<Order, OrderDto> _mapper;
+	public class UpdateOrderHanlder : IRequestHandler<UpdateOrder> {
+		private readonly IServiceProvider _serviceProvider;
+		private readonly IMapper _mapper;
 
-		public UpdateOrderHanlder(IServiceProvider serviceProvider, IMapper<Order, OrderDto> mapper)
-			: base(serviceProvider) {
+		public UpdateOrderHanlder(IServiceProvider serviceProvider, IMapper mapper) {
+			Contract.Requires(serviceProvider != null);
 			Contract.Requires(mapper != null);
 
+			_serviceProvider = serviceProvider;
 			_mapper = mapper;
 		}
 
 		public async Task<Unit> Handle(UpdateOrder request, CancellationToken cancellationToken) {
-			var order = _mapper.BackMap(request.Dto);
+			var client = _mapper.Map<Order>(request.Dto);
 
-			await Handle(order);
+			try {
+				using var scope = _serviceProvider.CreateScope();
+
+				var repository = scope.ServiceProvider.GetRequiredService<IDbRepository<Order>>();
+
+				await repository.UpdateAsync(client);
+			}
+			catch (Exception e) {
+				throw e.InnerException;
+			}
 
 			return Unit.Value;
 		}

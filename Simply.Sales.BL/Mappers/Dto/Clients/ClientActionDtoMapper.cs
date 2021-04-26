@@ -8,7 +8,7 @@ namespace Simply.Sales.BLL.Mappers.Dto.Clients {
 		private readonly IMapper<TelegramClient, TelegramClientDto> _clientDtoMapper;
 
 		public ClientActionDtoMapper() {
-			_clientDtoMapper = new TelegramClientDtoMapper();
+			_clientDtoMapper = null;
 		}
 
 		public ClientAction BackMap(ClientActionDto source) {
