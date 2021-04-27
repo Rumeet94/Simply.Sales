@@ -7,8 +7,9 @@
 		Basket = 4,
 		CleanBasket = 5,
 		Paid = 6,
-		Paymented = 7,
-		Address = 8,
-		Contacts = 9
+		ReceivingTime = 7,
+		Paymented = 8,
+		Address = 9,
+		Contacts = 11
 	}
 }

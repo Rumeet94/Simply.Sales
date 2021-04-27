@@ -20,13 +20,8 @@ using Simply.Sales.BLL.DbRequests.Handlers.Queries.Clients.Clients;
 using Simply.Sales.BLL.DbRequests.Handlers.Queries.Sales.Orders;
 using Simply.Sales.BLL.DbRequests.Handlers.Queries.Sales.Products;
 using Simply.Sales.BLL.DbRequests.Requests.Queries.Sales.Products;
-using Simply.Sales.BLL.Dto.Clients;
-using Simply.Sales.BLL.Dto.Sales;
-using Simply.Sales.BLL.Dto.Settings;
 using Simply.Sales.BLL.Mappers;
-using Simply.Sales.BLL.Mappers.Dto.Clients;
-using Simply.Sales.BLL.Mappers.Dto.Sales;
-using Simply.Sales.BLL.Mappers.Dto.Settings;
+using Simply.Sales.BLL.Providers;
 using Simply.Sales.DLL.Configuration.Creater;
 using Simply.Sales.DLL.Configuration.Mapper;
 using Simply.Sales.DLL.Context;
@@ -40,7 +35,6 @@ using Simply.Sales.DLL.Repositories.Settings;
 using Simply.Sales.TelegramBot.Infrastructure.Factories.Messages;
 using Simply.Sales.TelegramBot.Infrastructure.Servicies.Bot;
 using Simply.Sales.TelegramBot.Infrastructure.Servicies.Client;
-using Simply.Sales.TelegramBot.Infrastructure.Servicies.ClientAction;
 using Simply.Sales.TelegramBot.Infrastructure.Servicies.Message;
 using Simply.Sales.TelegramBot.Infrastructure.Servicies.Message.Handler;
 
@@ -82,12 +76,11 @@ namespace Simply.Sales.TelegramBot {
 			services.AddAutoMapper(c => c.AddProfile<AutoMapping>(), typeof(Startup));
 
 			services.AddSingleton<ITelegramBotClient, TelegramBotClient>(c => new TelegramBotClient("1230930238:AAEr1KEt6DETGro4lDPB0G9qgPwuqLxA9Mw"));
+			services.AddSingleton<IWorkTimeProvider, WorkTimeProvider>();
 
 			AddCommandHandlers(services);
 			AddQueryHandlers(services);
-			AddMappers(services);
 			AddServices(services);
-			AddProviders(services);
 			AddFactories(services);
 		}
 
@@ -153,18 +146,6 @@ namespace Simply.Sales.TelegramBot {
 				.AddMediatR(typeof(GetProductHandler).GetTypeInfo().Assembly)
 				.AddMediatR(typeof(GetProductsHandler).GetTypeInfo().Assembly);
 
-		private static void AddMappers(IServiceCollection services) =>
-			services
-				.AddTransient<IMapper<ClientAction, ClientActionDto>, ClientActionDtoMapper>()
-				//.AddTransient<IMapper<TelegramClient, TelegramClientDto>, TelegramClientDtoMapper>()
-
-				.AddTransient<IMapper<BasketItem, BasketItemDto>, BasketItemDtoMapper>()
-				.AddTransient<IMapper<Category, CategoryDto>, CategoryDtoMapper>()
-				.AddTransient<IMapper<Order, OrderDto>, OrderDtoMapper>()
-				.AddTransient<IMapper<Product, ProductDto>, ProductDtoMapper>()
-
-				.AddTransient<IMapper<Setting, SettingDto>, SettingDtoMapper>();
-
 		private static void AddServices(IServiceCollection services) =>
 			services
 				.AddSingleton<IBotService, BotService>()
@@ -174,8 +155,5 @@ namespace Simply.Sales.TelegramBot {
 
 		private static void AddFactories(IServiceCollection services) =>
 			services.AddSingleton<IMessageFactory, MessageFactory>();
-
-		private static void AddProviders(IServiceCollection services) =>
-			services.AddSingleton<IClientActionProvider, ClientActionProvider>();
 	}
 }

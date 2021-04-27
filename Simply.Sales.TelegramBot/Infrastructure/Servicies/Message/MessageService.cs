@@ -50,5 +50,8 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Servicies.Message {
 
 		public async Task DeleteMessage(long chatId, int messageId) =>
 			await _botClient.DeleteMessageAsync(chatId, messageId);
+
+		public async Task SendLocationMessage(long chatId, float latitude, float longitude) =>
+			await _botClient.SendLocationAsync(chatId, latitude, longitude);
 	}
 }

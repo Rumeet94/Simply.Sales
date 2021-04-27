@@ -24,7 +24,7 @@ namespace Simply.Sales.DLL.Configuration.Creater.Strategies.Sales {
 				.IsRequired();
 
 			modelBuilder.Entity<Order>()
-				.Property(c => c.DatePaided);
+				.Property(c => c.DateReceiving);
 
 			modelBuilder.Entity<Order>()
 				.Property(c => c.DateCompleted);

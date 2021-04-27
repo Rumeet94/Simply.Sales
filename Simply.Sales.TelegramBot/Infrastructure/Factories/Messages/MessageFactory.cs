@@ -10,8 +10,8 @@ using MediatR;
 using Simply.Sales.BLL.DbRequests.Requests.Queries.Clients.Clients;
 using Simply.Sales.BLL.DbRequests.Requests.Queries.Sales.Baskets;
 using Simply.Sales.BLL.DbRequests.Requests.Queries.Sales.Categories;
-using Simply.Sales.BLL.DbRequests.Requests.Queries.Sales.Products;
 using Simply.Sales.BLL.Dto.Sales;
+using Simply.Sales.BLL.Providers;
 using Simply.Sales.TelegramBot.Infrastructure.Enums;
 using Simply.Sales.TelegramBot.Infrastructure.Items;
 
@@ -19,21 +19,26 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 	public class MessageFactory : IMessageFactory {
+		private const string _workTimeFormat = "h\\:mm";
+		
 		private readonly IMediator _mediator;
+		private readonly IWorkTimeProvider _workTimeProvider;
 
-		public MessageFactory(IMediator mediator) {
+		public MessageFactory(IMediator mediator, IWorkTimeProvider workTimeProvider) {
 			Contract.Requires(mediator != null);
+			Contract.Requires(workTimeProvider != null);
 
 			_mediator = mediator;
+			_workTimeProvider = workTimeProvider;
 		}
 
 		public async Task<Keyboard> CreateKeyboard(SelectItem selectItem) {
 			if (selectItem.Type == IncomeMessageType.Home) {
 				var keyboard = await GetHomeKeyboard(selectItem.ChatId);
-
 				var markup = new InlineKeyboardMarkup(keyboard);
+				var text = "Выберите действие:";
 
-				return new Keyboard(markup, "Выберите действие:");
+				return new Keyboard(markup, text);
 			}
 
 			if (selectItem.Type == IncomeMessageType.Address) {
@@ -94,6 +99,20 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 				return new Keyboard(markup, "Ваш заказ отменен. Выберите действие:");
 			}
 
+			if (selectItem.Type == IncomeMessageType.ReceivingTime) {
+				var text = "Напишите, пожалуйста, в какое время вы заберете заказ в формате чч:мм. Пример: 17:00 " +
+					$"Заказы принимаются с {_workTimeProvider.StartWorkTime.ToString(_workTimeFormat)} " +
+					$"до {_workTimeProvider.EndWorkTime.ToString(_workTimeFormat)}";
+
+				var keyboard = new List<IEnumerable<InlineKeyboardButton>>();
+				
+				keyboard.Add(CreateButton(IncomeMessageType.Home, "Назад в меню"));
+
+				var markup = new InlineKeyboardMarkup(keyboard);
+
+				return new Keyboard(markup, text);
+			}
+
 			if (selectItem.Type == IncomeMessageType.Paid) {
 				var client = await _mediator.Send(new GetClientByTelegramChatId(selectItem.ChatId));
 				var order = client.Orders?.FirstOrDefault(o => !o.DateCompleted.HasValue);
@@ -149,7 +168,11 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 				return keyboard;
 			}
 
-			keyboard.Add(CreateButton(IncomeMessageType.Paid, "Далее"));
+			var paidButtonMessageType = order.DateReceiving.HasValue
+				? IncomeMessageType.Paid
+				: IncomeMessageType.ReceivingTime;
+
+			keyboard.Add(CreateButton(paidButtonMessageType, "Далее"));
 
 			return keyboard;
 		}
@@ -170,11 +193,11 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 		}
 
 		private async Task<IEnumerable<IEnumerable<InlineKeyboardButton>>> GetHomeKeyboard(long chatId) {
-			var keyboard = new List<IEnumerable<InlineKeyboardButton>> {
-				CreateButton(IncomeMessageType.Categories, "Сделать заказ"),
-				CreateButton(IncomeMessageType.Address, "Узнать aдрес"),
-				CreateButton(IncomeMessageType.Contacts, "Контакты")
-			};
+			var keyboard = new List<IEnumerable<InlineKeyboardButton>>();
+
+			keyboard.Add(CreateButton(IncomeMessageType.Categories, "Сделать заказ"));
+			keyboard.Add(CreateButton(IncomeMessageType.Address, "Узнать aдрес"));
+			keyboard.Add(CreateButton(IncomeMessageType.Contacts, "Контакты"));
 
 			var client = await _mediator.Send(new GetClientByTelegramChatId(chatId));
 			if (client == null) {
@@ -192,8 +215,11 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 			}
 			
 			var totalSum = basket.Select(b => b.Product.Price).Sum();
+			var paidButtonMessageType = order.DateReceiving.HasValue
+				? IncomeMessageType.Paid
+				: IncomeMessageType.ReceivingTime;
 
-			keyboard.Add(CreateButton(IncomeMessageType.Paid, $"Оплатить заказ ({totalSum} рублей)"));
+			keyboard.Add(CreateButton(paidButtonMessageType, $"Оплатить заказ ({totalSum} рублей)"));
 			keyboard.Add(CreateButton(IncomeMessageType.CleanBasket, "Очистить корзину", order.Id));
 
 			return keyboard;

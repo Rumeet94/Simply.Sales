@@ -11,5 +11,7 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Servicies.Message {
 		Task SendImageMessage(long chatId, string url, Keyboard keyboard);
 
 		Task DeleteMessage(long chatId, int messageId);
+
+		Task SendLocationMessage(long chatId, float latitude, float longitude);
 	}
 }

@@ -12,7 +12,7 @@ namespace Simply.Sales.DLL.Models.Sales {
 
 		public OrderState OrderState { get; set; }
 
-		public DateTime? DatePaided { get; set; }
+		public DateTime? DateReceiving { get; set; }
 
 		public DateTime? DateCompleted { get; set; }
 
