@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Text.Json;
@@ -10,17 +9,20 @@ using MediatR;
 using Simply.Sales.BLL.DbRequests.Requests.Queries.Clients.Clients;
 using Simply.Sales.BLL.DbRequests.Requests.Queries.Sales.Baskets;
 using Simply.Sales.BLL.DbRequests.Requests.Queries.Sales.Categories;
+using Simply.Sales.BLL.DbRequests.Requests.Queries.Sales.Products;
 using Simply.Sales.BLL.Dto.Sales;
 using Simply.Sales.BLL.Providers;
 using Simply.Sales.TelegramBot.Infrastructure.Enums;
 using Simply.Sales.TelegramBot.Infrastructure.Items;
+using Simply.Sales.TelegramBot.Infrastructure.Items.Keyboards;
 
 using Telegram.Bot.Types.ReplyMarkups;
 
 namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 	public class MessageFactory : IMessageFactory {
+		private const string _backButtonAlias = "Назад⬅️";
 		private const string _workTimeFormat = "h\\:mm";
-		
+
 		private readonly IMediator _mediator;
 		private readonly IWorkTimeProvider _workTimeProvider;
 
@@ -32,13 +34,13 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 			_workTimeProvider = workTimeProvider;
 		}
 
-		public async Task<Keyboard> CreateKeyboard(SelectItem selectItem) {
+		public async Task<MessageKeyboard> CreateKeyboard(SelectItem selectItem) {
 			if (selectItem.Type == IncomeMessageType.Home) {
 				var keyboard = await GetHomeKeyboard(selectItem.ChatId);
 				var markup = new InlineKeyboardMarkup(keyboard);
 				var text = "Выберите действие:";
 
-				return new Keyboard(markup, text);
+				return new MessageKeyboard(markup, text, selectItem.ChatId);
 			}
 
 			if (selectItem.Type == IncomeMessageType.Address) {
@@ -47,7 +49,7 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 				var keyboard = await GetHomeKeyboard(selectItem.ChatId);
 				var markup = new InlineKeyboardMarkup(keyboard);
 
-				return new Keyboard(markup, text);
+				return new MessageKeyboard(markup, text, selectItem.ChatId);
 			}
 
 			if (selectItem.Type == IncomeMessageType.Contacts) {
@@ -55,7 +57,7 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 				var keyboard = await GetHomeKeyboard(selectItem.ChatId);
 				var markup = new InlineKeyboardMarkup(keyboard);
 
-				return new Keyboard(markup, text);
+				return new MessageKeyboard(markup, text, selectItem.ChatId);
 			}
 
 			if (selectItem.Type == IncomeMessageType.Categories) {
@@ -64,21 +66,36 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 				var keyboard = await GetCategoriesKeyboard(categories, selectItem.ChatId);
 				var markup = new InlineKeyboardMarkup(keyboard);
 
-				return new Keyboard(
+				return new MessageKeyboard(
 					markup,
 					"Что Вы хотите закзать? \n Выбирете и нажмите на продукт. " +
-					"Для вовращения в меню нажмите на кнопку - 'Назад в меню'"
+						"Для вовращения в меню нажмите на кнопку - 'Назад'",
+					selectItem.ChatId
 				);
 			}
 
 			if (selectItem.Type == IncomeMessageType.Products) {
-				var category = await _mediator.Send(new GetCategory(selectItem.Id.Value));
+				var category = await _mediator.Send(new GetCategory(selectItem.CategoryId.Value));
 
 				var markup = new InlineKeyboardMarkup(GetProductsKeyboard(category));
 
-				return new Keyboard(
+				return new ImageKeyboard(
 					markup,
-					"Выберите и нажмите на один из вариатов. Для вовращения в продукты нажмите на кнопку - 'Назад в продукты'"
+					"Выберите и нажмите на один из вариатов. Для возвращения в продукты нажмите на кнопку - 'Назад'",
+					category.ImageUrl,
+					selectItem.ChatId
+				);
+			}
+
+			if (selectItem.Type == IncomeMessageType.ProductParameters) {
+				var product = await _mediator.Send(new GetProduct(selectItem.ProductId.Value));
+
+				var markup = new InlineKeyboardMarkup(GetProductParametersKeyboard(product.Parameters, product));
+
+				return new MessageKeyboard(
+					markup,
+					"Выберите сироп:",
+					selectItem.ChatId
 				);
 			}
 
@@ -88,7 +105,7 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 				var keyboard = await GetCategoriesKeyboard(categories, selectItem.ChatId);
 				var markup = new InlineKeyboardMarkup(keyboard);
 
-				return new Keyboard(markup, "Продукт добавлен в корзину.");
+				return new MessageKeyboard(markup, "Продукт добавлен в корзину.", selectItem.ChatId);
 			}
 
 			if (selectItem.Type == IncomeMessageType.CleanBasket) {
@@ -96,36 +113,44 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 
 				var markup = new InlineKeyboardMarkup(keyboard);
 
-				return new Keyboard(markup, "Ваш заказ отменен. Выберите действие:");
+				return new MessageKeyboard(markup, "Ваш заказ отменен. Выберите действие:", selectItem.ChatId);
 			}
 
 			if (selectItem.Type == IncomeMessageType.ReceivingTime) {
-				var text = "Напишите, пожалуйста, в какое время вы заберете заказ в формате чч:мм. Пример: 17:00 " +
-					$"Заказы принимаются с {_workTimeProvider.StartWorkTime.ToString(_workTimeFormat)} " +
+				var text = "Напишите, пожалуйста, в какое время вы заберете заказ в формате чч:мм. Пример: 17:00." +
+					$" Заказы принимаются с {_workTimeProvider.StartWorkTime.ToString(_workTimeFormat)} " +
 					$"до {_workTimeProvider.EndWorkTime.ToString(_workTimeFormat)}";
 
 				var keyboard = new List<IEnumerable<InlineKeyboardButton>>();
-				
-				keyboard.Add(CreateButton(IncomeMessageType.Home, "Назад в меню"));
+
+				keyboard.Add(CreateButton(new SelectItem { Type = IncomeMessageType.Home }, _backButtonAlias));
 
 				var markup = new InlineKeyboardMarkup(keyboard);
 
-				return new Keyboard(markup, text);
+				return new MessageKeyboard(markup, text, selectItem.ChatId);
 			}
 
 			if (selectItem.Type == IncomeMessageType.Paid) {
 				var client = await _mediator.Send(new GetClientByTelegramChatId(selectItem.ChatId));
 				var order = client.Orders?.FirstOrDefault(o => !o.DateCompleted.HasValue);
 				var basket = await _mediator.Send(new GetBasketByOrderId(order.Id));
-				var keyboard = GetPaidKeyboard(basket.Select(b => b.Product.Price).Sum());
+				var keyboard = GetPaidKeyboard(basket.Select(b => b.Product.Price + (b.ProductParameter?.Price ?? 0)).Sum());
 				var categories = await _mediator.Send(new GetCategories());
 
 				var markup = new InlineKeyboardMarkup(keyboard);
 				var text = "Ваш заказ:\n\n" +
-					string.Join(";\n", basket.Select(b => $"{categories.FirstOrDefault(c => c.Id == b.Product.CategoryId).Name} {b.Product.Name} - " +
-						$"{b.Product.Price} рублей"));
+					string.Join(
+						";\n",
+						basket.Select(
+							b => {
+								var parameter = b.ProductParameter == null ? string.Empty : $"(сироп: {b.ProductParameter.Name})";
 
-				return new Keyboard(markup, text);
+								return $"{categories.FirstOrDefault(c => c.Id == b.Product.CategoryId).Name} {b.Product.Name}" +
+									$" {parameter} - {b.Product.Price} рублей";
+						})
+					);
+
+				return new MessageKeyboard(markup, text, selectItem.ChatId);
 			}
 
 			if (selectItem.Type == IncomeMessageType.Paymented) {
@@ -138,7 +163,11 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 
 				var markup = new InlineKeyboardMarkup(keyboard);
 
-				return new Keyboard(markup, $"Номер вашего заказа - *{order.Id}*. Мы проверим оплату и приступим к приготовлению");
+				return new MessageKeyboard(
+					markup,
+					$"Номер вашего заказа - *{order.Id}*. Мы проверим оплату и приготовим к указанному времени",
+					selectItem.ChatId
+				);
 			}
 
 			return null;
@@ -148,10 +177,10 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 			var keyboard = new List<IEnumerable<InlineKeyboardButton>>();
 
 			foreach (var item in categories) {
-				keyboard.Add(CreateButton(IncomeMessageType.Products, item.Name, item.Id));
+				keyboard.Add(CreateButton(new SelectItem { Type = IncomeMessageType.Products, CategoryId = item.Id }, item.Name));
 			}
 
-			keyboard.Add(CreateButton(IncomeMessageType.Home, "Назад в меню"));
+			keyboard.Add(CreateButton(new SelectItem { Type = IncomeMessageType.Home }, _backButtonAlias));
 
 			var client = await _mediator.Send(new GetClientByTelegramChatId(chatId));
 			if (client == null) {
@@ -172,32 +201,50 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 				? IncomeMessageType.Paid
 				: IncomeMessageType.ReceivingTime;
 
-			keyboard.Add(CreateButton(paidButtonMessageType, "Далее"));
+			keyboard.Add(CreateButton(new SelectItem { Type = paidButtonMessageType }, "Далее➡️"));
 
 			return keyboard;
 		}
 
 		private static IEnumerable<IEnumerable<InlineKeyboardButton>> GetProductsKeyboard(CategoryDto category) {
 			foreach (var item in category.Products) {
-				yield return CreateButton(IncomeMessageType.Basket, $"{item.Name} - {item.Price} рублей", item.Id);
+				yield return CreateButton(
+					new SelectItem {
+						Type = item.Parameters.Any() ? IncomeMessageType.ProductParameters : IncomeMessageType.Basket,
+						ProductId = item.Id
+					},
+					$"{item.Name} - {item.Price} рублей"
+				);
 			}
 
-			yield return CreateButton(IncomeMessageType.Categories, "Назад в продукты");
+			yield return CreateButton(new SelectItem { Type = IncomeMessageType.Categories }, _backButtonAlias);
+		}
+
+		private static IEnumerable<IEnumerable<InlineKeyboardButton>> GetProductParametersKeyboard(
+			IEnumerable<ProductParameterDto> parameters,
+			ProductDto product
+		) {
+			foreach (var item in parameters) {
+				yield return CreateButton(new SelectItem { Type = IncomeMessageType.Basket, ProductParameterId = item.Id }, $"{item.Name}");
+			}
+
+			yield return CreateButton(new SelectItem { Type = IncomeMessageType.Basket, ProductId = product.Id }, "Без сиропа");
+			yield return CreateButton(new SelectItem { Type = IncomeMessageType.Products, CategoryId = product.CategoryId }, _backButtonAlias);
 		}
 
 		private IEnumerable<IEnumerable<InlineKeyboardButton>> GetPaidKeyboard(decimal totalSum) {
 			yield return CreateLink($"Ссылка на оплату - {totalSum} рублей", @"http://google.com");
-			yield return CreateButton(IncomeMessageType.Paymented, "Я оплатил(а)");
-			yield return CreateButton(IncomeMessageType.CleanBasket, "Я передумал(а)");
-			yield return CreateButton(IncomeMessageType.Home, "Назад в меню");
+			yield return CreateButton(new SelectItem { Type = IncomeMessageType.Paymented }, "Я оплатил(а)");
+			yield return CreateButton(new SelectItem { Type = IncomeMessageType.CleanBasket }, "Я передумал(а)");
+			yield return CreateButton(new SelectItem { Type = IncomeMessageType.Home }, _backButtonAlias);
 		}
 
 		private async Task<IEnumerable<IEnumerable<InlineKeyboardButton>>> GetHomeKeyboard(long chatId) {
 			var keyboard = new List<IEnumerable<InlineKeyboardButton>>();
 
-			keyboard.Add(CreateButton(IncomeMessageType.Categories, "Сделать заказ"));
-			keyboard.Add(CreateButton(IncomeMessageType.Address, "Узнать aдрес"));
-			keyboard.Add(CreateButton(IncomeMessageType.Contacts, "Контакты"));
+			keyboard.Add(CreateButton(new SelectItem { Type = IncomeMessageType.Categories }, "Сделать заказ"));
+			keyboard.Add(CreateButton(new SelectItem { Type = IncomeMessageType.Address }, "Узнать aдрес"));
+			keyboard.Add(CreateButton(new SelectItem { Type = IncomeMessageType.Contacts }, "Контакты"));
 
 			var client = await _mediator.Send(new GetClientByTelegramChatId(chatId));
 			if (client == null) {
@@ -219,20 +266,16 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 				? IncomeMessageType.Paid
 				: IncomeMessageType.ReceivingTime;
 
-			keyboard.Add(CreateButton(paidButtonMessageType, $"Оплатить заказ ({totalSum} рублей)"));
-			keyboard.Add(CreateButton(IncomeMessageType.CleanBasket, "Очистить корзину", order.Id));
+			keyboard.Add(CreateButton(new SelectItem { Type = paidButtonMessageType }, $"Оплатить заказ ({totalSum} рублей)"));
+			keyboard.Add(CreateButton(new SelectItem { Type = IncomeMessageType.CleanBasket, OrderId = order.Id }, "Очистить корзину"));
 
 			return keyboard;
 		}
 
-		private static IEnumerable<InlineKeyboardButton> CreateButton(
-			IncomeMessageType messageType,
-			string text = null,
-			int? id = null
-		) {
+		private static IEnumerable<InlineKeyboardButton> CreateButton(SelectItem item, string text) {
 			yield return InlineKeyboardButton.WithCallbackData(
 				text,
-				JsonSerializer.Serialize(new SelectItem { Type = messageType, Id = id })
+				JsonSerializer.Serialize(item, new JsonSerializerOptions() { IgnoreNullValues = true })
 			);
 		}
 

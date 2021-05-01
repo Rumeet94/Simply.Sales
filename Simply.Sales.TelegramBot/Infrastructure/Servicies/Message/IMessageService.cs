@@ -1,17 +1,19 @@
 ﻿using System.Threading.Tasks;
 
-using Simply.Sales.TelegramBot.Infrastructure.Items;
+using Simply.Sales.TelegramBot.Infrastructure.Items.Keyboards;
+
+using Telegram.Bot.Types.ReplyMarkups;
 
 namespace Simply.Sales.TelegramBot.Infrastructure.Servicies.Message {
 	public interface IMessageService {
 		Task SendTextMessage(long chatId, string text);
 
-		Task SendKeyboardMessage(long chatId, Keyboard keyboard);
+		Task SendKeyboardMessage(MessageKeyboard keyboard);
 
-		Task SendImageMessage(long chatId, string url, Keyboard keyboard);
+		Task SendImageMessage(ImageKeyboard keyboard);
 
 		Task DeleteMessage(long chatId, int messageId);
 
-		Task SendLocationMessage(long chatId, float latitude, float longitude);
+		Task SendVenueMessage(long chatId, float latitude, float longitude, IReplyMarkup markup, string title, string address);
 	}
 }

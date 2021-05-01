@@ -9,17 +9,17 @@ using MediatR;
 
 using Microsoft.Extensions.DependencyInjection;
 
-using Simply.Sales.BLL.DbRequests.Requests.Queries.Sales.Products;
+using Simply.Sales.BLL.DbRequests.Requests.Queries.Sales.ProductsParameters;
 using Simply.Sales.BLL.Dto.Sales;
 using Simply.Sales.DLL.Models.Sales;
 using Simply.Sales.DLL.Repositories;
 
-namespace Simply.Sales.BLL.DbRequests.Handlers.Queries.Sales.Products {
-	public class GetProductHandler : IRequestHandler<GetProduct, ProductDto> {
+namespace Simply.Sales.BLL.DbRequests.Handlers.Queries.Sales.ProductsParameters {
+	public class GetProductParameterHandler : IRequestHandler<GetProductParameter, ProductParameterDto> {
 		private readonly IServiceProvider _serviceProvider;
 		private readonly IMapper _mapper;
 
-		public GetProductHandler(IServiceProvider serviceProvider, IMapper mapper) {
+		public GetProductParameterHandler(IServiceProvider serviceProvider, IMapper mapper) {
 			Contract.Requires(serviceProvider == null);
 			Contract.Requires(mapper == null);
 
@@ -27,13 +27,13 @@ namespace Simply.Sales.BLL.DbRequests.Handlers.Queries.Sales.Products {
 			_mapper = mapper;
 		}
 
-		public async Task<ProductDto> Handle(GetProduct request, CancellationToken cancellationToken) {
+		public async Task<ProductParameterDto> Handle(GetProductParameter request, CancellationToken cancellationToken) {
 			using var scope = _serviceProvider.CreateScope();
 
-			var repository = scope.ServiceProvider.GetRequiredService<IDbRepository<Product>>();
+			var repository = scope.ServiceProvider.GetRequiredService<IDbRepository<ProductParameter>>();
 			var item = await repository.GetSingleAsync(request.Id);
 
-			return _mapper.Map<ProductDto>(item);
+			return _mapper.Map<ProductParameterDto>(item);
 		}
 	}
 }

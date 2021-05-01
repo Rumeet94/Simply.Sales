@@ -7,5 +7,7 @@ namespace Simply.Sales.DLL.Models.Sales {
 		public bool IsVisible { get; set; }
 
 		public IEnumerable<Product> Products { get; set; }
+
+		public string ImageUrl { get; set; }
 	}
 }

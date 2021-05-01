@@ -34,16 +34,20 @@ namespace Simply.Sales.DLL.Repositories.Sales {
 		}
 
 		public IEnumerable<Product> Get() =>
-			_context.Products.Include(c => c.Category);
+			_context.Products
+				.Include(c => c.Category)
+				.Include(p => p.Parameters);
 
 		public IEnumerable<Product> Get(Expression<Func<Product, bool>> predicate) =>
 			_context.Products
 				.Where(predicate)
-				.Include(c => c.Category);
+				.Include(c => c.Category)
+				.Include(p => p.Parameters);
 
 		public Product GetSingle(int id) =>
 			_context.Products
 				.Include(c => c.Category)
+				.Include(p => p.Parameters)
 				.FirstOrDefault(c => c.Id == id);
 
 		public void Update(Product item) {

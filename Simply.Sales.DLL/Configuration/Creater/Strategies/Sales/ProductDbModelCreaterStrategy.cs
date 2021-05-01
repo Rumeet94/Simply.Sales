@@ -21,7 +21,7 @@ namespace Simply.Sales.DLL.Configuration.Creater.Strategies.Sales {
 				.Property(c => c.Name)
 				.IsRequired();
 
-			modelBuilder.Entity<Category>()
+			modelBuilder.Entity<Product>()
 				.Property(c => c.IsVisible)
 				.IsRequired();
 		}

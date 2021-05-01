@@ -32,6 +32,8 @@ namespace Simply.Sales.DLL.Context {
 
 		public DbSet<ClientAction> ClientActions { get; set; }
 
+		public DbSet<ProductParameter> ProductParameters { get; set; }
+
 		protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) =>
 			optionsBuilder.UseSqlite(@"Data Source=sqlitedemo.db");
 

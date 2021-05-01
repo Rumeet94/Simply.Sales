@@ -37,16 +37,22 @@ namespace Simply.Sales.DLL.Repositories.Sales {
 		public IEnumerable<BasketItem> Get() =>
 			_context.Baskets
 				.Include(c => c.Order)
-				.Include(c => c.Product);
+				.Include(c => c.Product)
+				.Include(c => c.ProductParameter);
 
 		public IEnumerable<BasketItem> Get(Expression<Func<BasketItem, bool>> predicate) =>
 			_context.Baskets
 				.Where(predicate)
 				.Include(c => c.Order)
-				.Include(c => c.Product);
+				.Include(c => c.Product)
+				.Include(c => c.ProductParameter);
 
 		public BasketItem GetSingle(int id) =>
-			_context.Baskets.FirstOrDefault(c => c.Id == id);
+			_context.Baskets
+				.Include(c => c.Order)
+				.Include(c => c.Product)
+				.Include(c => c.ProductParameter)
+				.FirstOrDefault(c => c.Id == id);
 
 		public void Update(BasketItem item) {
 			_context.Update(item);

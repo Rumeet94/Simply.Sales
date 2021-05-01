@@ -4,12 +4,13 @@
 		Home = 1,
 		Categories = 2,
 		Products = 3,
-		Basket = 4,
-		CleanBasket = 5,
-		Paid = 6,
-		ReceivingTime = 7,
-		Paymented = 8,
-		Address = 9,
+		ProductParameters = 4,
+		Basket = 5,
+		CleanBasket = 6,
+		Paid = 7,
+		ReceivingTime = 8,
+		Paymented = 9,
+		Address = 10,
 		Contacts = 11
 	}
 }

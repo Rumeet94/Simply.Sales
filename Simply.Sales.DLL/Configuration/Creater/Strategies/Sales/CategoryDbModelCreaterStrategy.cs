@@ -23,6 +23,10 @@ namespace Simply.Sales.DLL.Configuration.Creater.Strategies.Sales {
 			modelBuilder.Entity<Category>()
 				.Property(c => c.IsVisible)
 				.IsRequired();
+
+			modelBuilder.Entity<Category>()
+				.Property(c => c.ImageUrl)
+				.IsRequired();
 		}
 	}
 }

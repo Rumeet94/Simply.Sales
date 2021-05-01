@@ -9,17 +9,13 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-using Simply.Sales.BLL.DbRequests.Handlers.Commands.Clients.Action;
 using Simply.Sales.BLL.DbRequests.Handlers.Commands.Clients.Clients;
 using Simply.Sales.BLL.DbRequests.Handlers.Commands.Sales.Baskets;
 using Simply.Sales.BLL.DbRequests.Handlers.Commands.Sales.Orders;
-using Simply.Sales.BLL.DbRequests.Handlers.Commands.Sales.Products;
-using Simply.Sales.BLL.DbRequests.Handlers.Commands.Settings;
-using Simply.Sales.BLL.DbRequests.Handlers.Queries.Clients.Actions;
 using Simply.Sales.BLL.DbRequests.Handlers.Queries.Clients.Clients;
-using Simply.Sales.BLL.DbRequests.Handlers.Queries.Sales.Orders;
 using Simply.Sales.BLL.DbRequests.Handlers.Queries.Sales.Products;
-using Simply.Sales.BLL.DbRequests.Requests.Queries.Sales.Products;
+using Simply.Sales.BLL.DbRequests.Handlers.Queries.Sales.ProductsParameters;
+using Simply.Sales.BLL.DbRequests.Requests.Queries.Sales.Baskets;
 using Simply.Sales.BLL.Mappers;
 using Simply.Sales.BLL.Providers;
 using Simply.Sales.DLL.Configuration.Creater;
@@ -67,13 +63,13 @@ namespace Simply.Sales.TelegramBot {
 
 			services.AddScoped<IDbRepository<Category>, CategoryRepository>();
 			services.AddScoped<IDbRepository<Product>, ProductRepository>();
+			services.AddScoped<IDbRepository<ProductParameter>, ProductParameterRepository>();
 			services.AddScoped<IDbRepository<BasketItem>, BasketRepository>();
 			services.AddScoped<IDbRepository<Order>, OrderRepository>();
-
 			services.AddScoped<IDbRepository<Setting>, SettingRepository>();
 
 			services.AddMediatR(typeof(Startup));
-			services.AddAutoMapper(c => c.AddProfile<AutoMapping>(), typeof(Startup));
+			services.AddAutoMapper(c => c.AddProfile<AutoMappingConfiguration>(), typeof(Startup));
 
 			services.AddSingleton<ITelegramBotClient, TelegramBotClient>(c => new TelegramBotClient("1230930238:AAEr1KEt6DETGro4lDPB0G9qgPwuqLxA9Mw"));
 			services.AddSingleton<IWorkTimeProvider, WorkTimeProvider>();
@@ -110,41 +106,18 @@ namespace Simply.Sales.TelegramBot {
 
 		private static void AddCommandHandlers(IServiceCollection services) =>
 			services
-				.AddMediatR(typeof(AddClientActionHandler).GetTypeInfo().Assembly)
-				.AddMediatR(typeof(DeleteClientActionHandler).GetTypeInfo().Assembly)
-				.AddMediatR(typeof(UpdateClientActionHanlder).GetTypeInfo().Assembly)
-
 				.AddMediatR(typeof(AddTelegramClientHandler).GetTypeInfo().Assembly)
-				.AddMediatR(typeof(DeleteTelegramClientHandler).GetTypeInfo().Assembly)
 				.AddMediatR(typeof(UpdateTelegramClientHanlder).GetTypeInfo().Assembly)
-
 				.AddMediatR(typeof(AddBasketItemHandler).GetTypeInfo().Assembly)
-				.AddMediatR(typeof(DeleteBasketHandler).GetTypeInfo().Assembly)
-				.AddMediatR(typeof(UpdateBasketItemHanlder).GetTypeInfo().Assembly)
-
 				.AddMediatR(typeof(AddOrderHandler).GetTypeInfo().Assembly)
-				.AddMediatR(typeof(DeleteOrderHandler).GetTypeInfo().Assembly)
-				.AddMediatR(typeof(UpdateOrderHanlder).GetTypeInfo().Assembly)
-
-				.AddMediatR(typeof(AddProductHandler).GetTypeInfo().Assembly)
-				.AddMediatR(typeof(DeleteProductHandler).GetTypeInfo().Assembly)
-				.AddMediatR(typeof(UpdateProductHanlder).GetTypeInfo().Assembly)
-
-				.AddMediatR(typeof(AddSettingHandler).GetTypeInfo().Assembly)
-				.AddMediatR(typeof(DeleteSettingHandler).GetTypeInfo().Assembly)
-				.AddMediatR(typeof(UpdateSettingHanlder).GetTypeInfo().Assembly);
+				.AddMediatR(typeof(UpdateOrderHanlder).GetTypeInfo().Assembly);
 
 		private static void AddQueryHandlers(IServiceCollection services) =>
 			services
-				.AddMediatR(typeof(GetClientActionHandler).GetTypeInfo().Assembly)
-
+				.AddMediatR(typeof(GetBasketByOrderId).GetTypeInfo().Assembly)
 				.AddMediatR(typeof(GetClientByTelegramChatIdHandler).GetTypeInfo().Assembly)
-
-				.AddMediatR(typeof(GetOrderHandler).GetTypeInfo().Assembly)
-				.AddMediatR(typeof(GetOrdersHandler).GetTypeInfo().Assembly)
-
-				.AddMediatR(typeof(GetProductHandler).GetTypeInfo().Assembly)
-				.AddMediatR(typeof(GetProductsHandler).GetTypeInfo().Assembly);
+				.AddMediatR(typeof(GetProductParameterHandler).GetTypeInfo().Assembly)
+				.AddMediatR(typeof(GetProductHandler).GetTypeInfo().Assembly);
 
 		private static void AddServices(IServiceCollection services) =>
 			services

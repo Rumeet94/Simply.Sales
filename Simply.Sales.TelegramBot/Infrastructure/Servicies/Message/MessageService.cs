@@ -2,11 +2,12 @@
 using System.Diagnostics.Contracts;
 using System.Threading.Tasks;
 
-using Simply.Sales.TelegramBot.Infrastructure.Items;
+using Simply.Sales.TelegramBot.Infrastructure.Items.Keyboards;
 
 using Telegram.Bot;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.InputFiles;
+using Telegram.Bot.Types.ReplyMarkups;
 
 namespace Simply.Sales.TelegramBot.Infrastructure.Servicies.Message {
 	public class MessageService : IMessageService {
@@ -29,29 +30,29 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Servicies.Message {
 			);
 		}
 
-		public async Task SendKeyboardMessage(long chatId, Keyboard keyboard) {
+		public async Task SendKeyboardMessage(MessageKeyboard keyboard) {
 			if (keyboard == null) {
 				return;
 			}
 
 			await _botClient.SendTextMessageAsync(
-				chatId: chatId,
+				chatId: keyboard.ChatId,
 				text: keyboard.Text,
 				parseMode: ParseMode.Markdown,
 				replyMarkup: keyboard.Markup
 			);
 		}
 
-		public async Task SendImageMessage(long chatId, string url, Keyboard keyboard) {
-			var file = new InputOnlineFile(new Uri(url));
+		public async Task SendImageMessage(ImageKeyboard keyboard) {
+			var file = new InputOnlineFile(new Uri(keyboard.Url));
 			
-			await _botClient.SendPhotoAsync(chatId, file, keyboard.Text, replyMarkup: keyboard.Markup);
+			await _botClient.SendPhotoAsync(keyboard.ChatId, file, keyboard.Text, replyMarkup: keyboard.Markup);
 		}
 
 		public async Task DeleteMessage(long chatId, int messageId) =>
 			await _botClient.DeleteMessageAsync(chatId, messageId);
 
-		public async Task SendLocationMessage(long chatId, float latitude, float longitude) =>
-			await _botClient.SendLocationAsync(chatId, latitude, longitude);
+		public async Task SendVenueMessage(long chatId, float latitude, float longitude, IReplyMarkup markup, string title, string address) =>
+			await _botClient.SendVenueAsync(chatId, latitude, longitude, title, address, replyMarkup: markup);
 	}
 }

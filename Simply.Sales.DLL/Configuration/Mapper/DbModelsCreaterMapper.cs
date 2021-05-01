@@ -15,6 +15,7 @@ namespace Simply.Sales.DLL.Configuration.Mapper {
 			yield return new BasketItemDbModelCreaterStrategy();
 			yield return new OrderDbModelCreaterStrategy();
 			yield return new ClientActionDbModelCreaterStrategy();
+			yield return new ProductParametersDbModelCreaterStrategy();
 		}
 	}
 }

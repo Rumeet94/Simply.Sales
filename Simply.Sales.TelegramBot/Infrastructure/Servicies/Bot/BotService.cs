@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.Contracts;
+﻿using System;
+using System.Diagnostics.Contracts;
 using System.Threading.Tasks;
 
 using Simply.Sales.TelegramBot.Infrastructure.Servicies.Message.Handler;
@@ -42,7 +43,7 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Servicies.Bot {
 			try {
 				await _messageHandlerService.HandleText(eventMessage.Message);
 			}
-			catch {
+			catch(Exception e) {
 
 			}
 		}
@@ -51,7 +52,7 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Servicies.Bot {
 			try {
 				await _messageHandlerService.HandleKeyboard(eventCallback.CallbackQuery);
 			}
-			catch {
+			catch(Exception e) {
 
 			}
 		}

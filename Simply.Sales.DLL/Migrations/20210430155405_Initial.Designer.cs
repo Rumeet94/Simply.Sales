@@ -2,15 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Simply.Sales.DLL.Context;
 
 namespace Simply.Sales.DLL.Migrations
 {
     [DbContext(typeof(SalesDbContext))]
-    partial class SalesDbContextModelSnapshot : ModelSnapshot
+    [Migration("20210430155405_Initial")]
+    partial class Initial
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -76,7 +78,7 @@ namespace Simply.Sales.DLL.Migrations
                     b.Property<int>("ProductId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int?>("ProductParameterId")
+                    b.Property<int>("ProductParameterId")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
@@ -241,7 +243,9 @@ namespace Simply.Sales.DLL.Migrations
 
                     b.HasOne("Simply.Sales.DLL.Models.Sales.ProductParameter", "ProductParameter")
                         .WithMany("Baskets")
-                        .HasForeignKey("ProductParameterId");
+                        .HasForeignKey("ProductParameterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Order");
 

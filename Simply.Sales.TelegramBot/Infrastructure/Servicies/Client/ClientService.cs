@@ -5,10 +5,8 @@ using System.Threading.Tasks;
 using MediatR;
 
 using Simply.Sales.BLL.DbRequests.Requests.Commands.Clients.Clients;
-using Simply.Sales.BLL.DbRequests.Requests.Queries.Clients.Actions;
 using Simply.Sales.BLL.DbRequests.Requests.Queries.Clients.Clients;
 using Simply.Sales.BLL.Dto.Clients;
-using Simply.Sales.BLL.Dto.Clients.Enums;
 
 namespace Simply.Sales.TelegramBot.Infrastructure.Servicies.Client {
 	public class ClientService : IClientService {
@@ -34,18 +32,6 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Servicies.Client {
 			if (client == null) {
 				throw new Exception("Ошибка при регистрации клиента");
 			}
-
-			await CreateAction(client.Id, ClientActionTypeDto.Introduce);
-		}
-
-		private async Task CreateAction(int clientId, ClientActionTypeDto actionType) {
-			var action = new ClientActionDto {
-				ActionType = ClientActionTypeDto.Introduce,
-				ClientId = clientId,
-				DateCreated = DateTime.Now,
-			};
-
-			await _mediator.Send(new AddClientAction(action));
 		}
 	}
 }

@@ -18,14 +18,12 @@ namespace Simply.Sales.DLL.Configuration.Creater.Strategies.Sales {
 				.IsRequired();
 
 			modelBuilder.Entity<BasketItem>()
+				.Property(p => p.ProductParameterId);
+
+			modelBuilder.Entity<BasketItem>()
 				.HasOne(c => c.Order)
 				.WithMany(c => c.Basket)
 				.HasForeignKey(c => c.OrderId);
-
-			modelBuilder.Entity<BasketItem>()
-				.HasOne(c => c.Product)
-				.WithMany(c => c.Baskets)
-				.HasForeignKey(c => c.ProductId);
 		}
 	}
 }

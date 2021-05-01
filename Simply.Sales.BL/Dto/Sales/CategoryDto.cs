@@ -7,5 +7,7 @@ namespace Simply.Sales.BLL.Dto.Sales {
 		public bool IsVisible { get; set; }
 
 		public IEnumerable<ProductDto> Products { get; set; }
+
+		public string ImageUrl { get; set; }
 	}
 }
