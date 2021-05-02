@@ -38,7 +38,7 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Servicies.Message {
 			await _botClient.SendTextMessageAsync(
 				chatId: keyboard.ChatId,
 				text: keyboard.Text,
-				parseMode: ParseMode.Markdown,
+				parseMode: ParseMode.Default,
 				replyMarkup: keyboard.Markup
 			);
 		}

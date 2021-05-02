@@ -2,6 +2,8 @@
 using System.Diagnostics.Contracts;
 using System.Threading.Tasks;
 
+using Microsoft.Extensions.Logging;
+
 using Simply.Sales.TelegramBot.Infrastructure.Servicies.Message.Handler;
 
 using Telegram.Bot;
@@ -11,13 +13,16 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Servicies.Bot {
 	public class BotService : IBotService {
 		private readonly ITelegramBotClient _botClient;
 		private readonly IMessageHandlerService _messageHandlerService;
+		private readonly ILogger<BotService> _logger;
 
-		public BotService(ITelegramBotClient botClient, IMessageHandlerService messageHandlerService) {
+		public BotService(ITelegramBotClient botClient, IMessageHandlerService messageHandlerService, ILogger<BotService> logger) {
 			Contract.Requires(botClient != null);
 			Contract.Requires(messageHandlerService != null);
+			Contract.Requires(logger != null);
 
 			_botClient = botClient;
 			_messageHandlerService = messageHandlerService;
+			_logger = logger;
 		}
 
 		public void StopWatch() {
@@ -44,7 +49,7 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Servicies.Bot {
 				await _messageHandlerService.HandleText(eventMessage.Message);
 			}
 			catch(Exception e) {
-
+				_logger.LogError($"Error on client {eventMessage.Message.Chat.Id}. {e.Message}");
 			}
 		}
 
@@ -53,7 +58,7 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Servicies.Bot {
 				await _messageHandlerService.HandleKeyboard(eventCallback.CallbackQuery);
 			}
 			catch(Exception e) {
-
+				_logger.LogError($"Error on client {eventCallback.CallbackQuery.Message.Chat.Id}. {e.Message}");
 			}
 		}
 	}

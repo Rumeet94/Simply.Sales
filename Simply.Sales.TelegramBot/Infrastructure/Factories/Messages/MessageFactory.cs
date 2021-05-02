@@ -44,8 +44,7 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 			}
 
 			if (selectItem.Type == IncomeMessageType.Address) {
-				var text = "Mы находимся по адресу: улица Минаева, д. 11, ТРК Спартак \n" +
-					@"Наш инстаграм: https://www.instagram.com/lemarche.coffee";
+				var text = "Mы находимся по адресу: улица Минаева, д. 11, ТРК Спартак";
 				var keyboard = await GetHomeKeyboard(selectItem.ChatId);
 				var markup = new InlineKeyboardMarkup(keyboard);
 
@@ -53,7 +52,8 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 			}
 
 			if (selectItem.Type == IncomeMessageType.Contacts) {
-				var text = "Здесь будут контакты";
+				var text = @"Наш инстаграм: https://www.instagram.com/lemarche.coffee" +
+					"\n По всем вопросам: @aydar_rafikoff";
 				var keyboard = await GetHomeKeyboard(selectItem.ChatId);
 				var markup = new InlineKeyboardMarkup(keyboard);
 
@@ -165,7 +165,7 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 
 				return new MessageKeyboard(
 					markup,
-					$"Номер вашего заказа - *{order.Id}*. Мы проверим оплату и приготовим к указанному времени",
+					$"Номер вашего заказа - {order.Id}. Мы проверим оплату и приготовим к указанному времени",
 					selectItem.ChatId
 				);
 			}
@@ -233,7 +233,7 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 		}
 
 		private IEnumerable<IEnumerable<InlineKeyboardButton>> GetPaidKeyboard(decimal totalSum) {
-			yield return CreateLink($"Ссылка на оплату - {totalSum} рублей", @"http://google.com");
+			yield return CreateLink($"Ссылка на оплату - {totalSum} рублей", @"https://money.alfabank.ru/p2p/web/transfer/arafikov3739");
 			yield return CreateButton(new SelectItem { Type = IncomeMessageType.Paymented }, "Я оплатил(а)");
 			yield return CreateButton(new SelectItem { Type = IncomeMessageType.CleanBasket }, "Я передумал(а)");
 			yield return CreateButton(new SelectItem { Type = IncomeMessageType.Home }, _backButtonAlias);

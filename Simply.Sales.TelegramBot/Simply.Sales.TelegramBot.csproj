@@ -19,13 +19,19 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="NLog" Version="4.7.9" />
-    <PackageReference Include="NLog.Config" Version="4.7.9" />
+    <PackageReference Include="NLog.Web.AspNetCore" Version="4.12.0" />
     <PackageReference Include="Telegram.Bot" Version="15.7.1" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Simply.Sales.BL\Simply.Sales.BLL.csproj" />
     <ProjectReference Include="..\Simply.Sales.DLL\Simply.Sales.DLL.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="C:\Users\egorbunov\.nuget\packages\nlog.config\4.7.9\contentFiles\any\any\NLog.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
