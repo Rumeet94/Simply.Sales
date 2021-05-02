@@ -25,15 +25,15 @@ namespace Simply.Sales.BLL.Providers {
 		}
 
 		public DateTime? GetDateTimeInWorkPeriod(string time) {
-			var timeSpan = time.GetTimeSpanFromString();
+			var timeSpan = TimeSpan.Parse(time);//time.GetTimeSpanFromString();
 
-			if (!timeSpan.HasValue) {
-				return null;
-			}
+			//if (!timeSpan.HasValue) {
+			//	return null;
+			//}
 
 			var utc = DateTime.UtcNow;
 			var currentDate = TimeZoneInfo.ConvertTime(utc, _timeZone);
-			var nowDateTime = currentDate.Date.Add(timeSpan.Value);
+			var nowDateTime = currentDate.Date.Add(timeSpan);
 
 			return nowDateTime.IsBetween(currentDate.Date.Add(StartWorkTime), currentDate.Date.Add(EndWorkTime))
 				? nowDateTime
