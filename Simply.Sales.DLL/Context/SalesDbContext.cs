@@ -16,6 +16,8 @@ namespace Simply.Sales.DLL.Context {
 			Contract.Requires(dbModelsCreater != null);
 
 			_dbModelsCreater = dbModelsCreater;
+
+			Database.EnsureCreated();
 		}
 
 		public DbSet<TelegramClient> Clients { get; set; }
@@ -35,7 +37,7 @@ namespace Simply.Sales.DLL.Context {
 		public DbSet<ProductParameter> ProductParameters { get; set; }
 
 		protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) =>
-			optionsBuilder.UseSqlite(@"Data Source=sqlitedemo.db");
+			optionsBuilder.UseSqlite(@"Data Source=leMarcheDb.db");
 
 		protected override void OnModelCreating(ModelBuilder builder) =>
 			_dbModelsCreater.CreateModels(builder);

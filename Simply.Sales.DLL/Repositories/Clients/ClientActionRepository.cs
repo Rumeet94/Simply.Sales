@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 
 using Microsoft.EntityFrameworkCore;
 
@@ -31,6 +32,10 @@ namespace Simply.Sales.DLL.Repositories.Clients {
 
 			_context.ClientActions.Remove(item);
 			_context.SaveChanges();
+		}
+
+		public Task ExecuteSqlScript(string script) {
+			throw new NotImplementedException();
 		}
 
 		public IEnumerable<ClientAction> Get() =>

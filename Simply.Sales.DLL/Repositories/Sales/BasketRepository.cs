@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 
 using Microsoft.EntityFrameworkCore;
 
 using Simply.Sales.DLL.Context;
 using Simply.Sales.DLL.Models.Sales;
-
 
 namespace Simply.Sales.DLL.Repositories.Sales {
 	public class BasketRepository : IDbRepository<BasketItem> {
@@ -32,6 +32,10 @@ namespace Simply.Sales.DLL.Repositories.Sales {
 
 			_context.Baskets.Remove(item);
 			_context.SaveChanges();
+		}
+
+		public Task ExecuteSqlScript(string script) {
+			throw new NotImplementedException();
 		}
 
 		public IEnumerable<BasketItem> Get() =>

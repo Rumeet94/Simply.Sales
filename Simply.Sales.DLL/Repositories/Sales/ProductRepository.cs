@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 
 using Microsoft.EntityFrameworkCore;
 
@@ -32,6 +33,9 @@ namespace Simply.Sales.DLL.Repositories.Sales {
 			_context.Products.Remove(item);
 			_context.SaveChanges();
 		}
+
+		public async Task ExecuteSqlScript(string script) =>
+			await _context.Database.ExecuteSqlRawAsync(script);
 
 		public IEnumerable<Product> Get() =>
 			_context.Products

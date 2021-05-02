@@ -19,6 +19,8 @@ namespace Simply.Sales.DLL.Repositories {
 
 		void Delete(int id);
 
+		Task ExecuteSqlScript(string script);
+
 		Task<IEnumerable<T>> GetAsync() =>
 			Task.Run(() => Get());
 

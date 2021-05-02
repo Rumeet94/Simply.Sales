@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 
 using Simply.Sales.DLL.Context;
 using Simply.Sales.DLL.Models.Settings;
@@ -29,6 +30,10 @@ namespace Simply.Sales.DLL.Repositories.Settings {
 
 			_context.Settings.Remove(item);
 			_context.SaveChanges();
+		}
+
+		public Task ExecuteSqlScript(string script) {
+			throw new NotImplementedException();
 		}
 
 		public IEnumerable<Setting> Get() =>
