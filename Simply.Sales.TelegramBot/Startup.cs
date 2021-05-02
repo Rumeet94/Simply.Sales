@@ -1,9 +1,12 @@
+using System.Collections.Generic;
+using System.Globalization;
 using System.Reflection;
 
 using MediatR;
 
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -91,6 +94,19 @@ namespace Simply.Sales.TelegramBot {
 				// The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
 				app.UseHsts();
 			}
+
+			var defaultDateCulture = "ru-RU";
+			var ci = new CultureInfo(defaultDateCulture);
+			ci.NumberFormat.NumberDecimalSeparator = ".";
+			ci.NumberFormat.CurrencyDecimalSeparator = ".";
+
+			app.UseRequestLocalization(
+				new RequestLocalizationOptions {
+					DefaultRequestCulture = new RequestCulture(ci),
+					SupportedCultures = new List<CultureInfo> { ci },
+					SupportedUICultures = new List<CultureInfo> { ci }
+				}
+			);
 			app.UseHttpsRedirection();
 			app.UseStaticFiles();
 

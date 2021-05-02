@@ -106,10 +106,9 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Servicies.Message.Handler {
 			var order = client.Orders?.FirstOrDefault(o => !o.DateCompleted.HasValue);
 			if (order != null && order.OrderState == OrderStateDto.ReceivingTime) {
 				var stringTime = message.Text.Replace(".", ":");
-				if (_workTimeProvider.IsWorkTime(stringTime)) {
-					var time = TimeSpan.Parse(stringTime);
-
-					order.DateReceiving = DateTime.Today.Add(time);
+				var orderDateTime = _workTimeProvider.GetDateTimeInWorkPeriod(stringTime);
+				if (orderDateTime.HasValue) {
+					order.DateReceiving = orderDateTime.Value;
 					order.OrderState = OrderStateDto.Paid;
 
 					await _mediator.Send(new UpdateOrder(order));
