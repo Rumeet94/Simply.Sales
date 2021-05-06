@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Reflection;
+using System.Threading.Tasks;
 
 using MediatR;
 
@@ -85,7 +86,9 @@ namespace Simply.Sales.TelegramBot {
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-		public void Configure(IApplicationBuilder app, IWebHostEnvironment env) {
+		public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IBotService botService) {
+			Task.Run(() => botService.Watch()).Wait();
+
 			if (env.IsDevelopment()) {
 				app.UseDeveloperExceptionPage();
 			}
