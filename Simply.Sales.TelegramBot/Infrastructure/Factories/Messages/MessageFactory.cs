@@ -53,7 +53,7 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 
 			if (selectItem.Type == IncomeMessageType.Contacts) {
 				var text = @"Наш инстаграм: https://www.instagram.com/lemarche.coffee" +
-					"\n По всем вопросам: @aydar_rafikoff";
+					"\nПо всем вопросам: @aydar_rafikoff";
 				var keyboard = await GetHomeKeyboard(selectItem.ChatId);
 				var markup = new InlineKeyboardMarkup(keyboard);
 
@@ -68,8 +68,8 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 
 				return new MessageKeyboard(
 					markup,
-					"Что Вы хотите закзать? \n Выбирете и нажмите на продукт. " +
-						"Для вовращения в меню нажмите на кнопку - 'Назад'",
+					"Что Вы хотите заказать? \n Выбирете и нажмите на продукт. " +
+						"Для возвращения в меню нажмите на кнопку - 'Назад'",
 					selectItem.ChatId
 				);
 			}
@@ -81,7 +81,7 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 
 				return new ImageKeyboard(
 					markup,
-					"Выберите и нажмите на один из вариатов. Для возвращения в продукты нажмите на кнопку - 'Назад'",
+					"Выберите и нажмите на один из вариантов. Для возвращения в продукты нажмите на кнопку - 'Назад'",
 					category.ImageUrl,
 					selectItem.ChatId
 				);
