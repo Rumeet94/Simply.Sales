@@ -13,6 +13,7 @@ using Simply.Sales.BLL.DbRequests.Requests.Queries.Sales.Products;
 using Simply.Sales.BLL.Dto.Sales;
 using Simply.Sales.BLL.Providers;
 using Simply.Sales.TelegramBot.Infrastructure.Enums;
+using Simply.Sales.TelegramBot.Infrastructure.Helpers;
 using Simply.Sales.TelegramBot.Infrastructure.Items;
 using Simply.Sales.TelegramBot.Infrastructure.Items.Keyboards;
 
@@ -36,7 +37,7 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 
 		public async Task<MessageKeyboard> CreateKeyboard(SelectItem selectItem) {
 			if (selectItem.Type == IncomeMessageType.Home) {
-				var keyboard = await GetHomeKeyboard(selectItem.ChatId);
+				var keyboard = await GetHomeKeyboard(selectItem.ChatId, selectItem);
 				var markup = new InlineKeyboardMarkup(keyboard);
 				var text = "Выберите действие:";
 
@@ -45,7 +46,7 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 
 			if (selectItem.Type == IncomeMessageType.Address) {
 				var text = "Mы находимся по адресу: улица Минаева, д. 11, ТРК Спартак";
-				var keyboard = await GetHomeKeyboard(selectItem.ChatId);
+				var keyboard = await GetHomeKeyboard(selectItem.ChatId, selectItem);
 				var markup = new InlineKeyboardMarkup(keyboard);
 
 				return new MessageKeyboard(markup, text, selectItem.ChatId);
@@ -54,7 +55,7 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 			if (selectItem.Type == IncomeMessageType.Contacts) {
 				var text = @"Наш инстаграм: https://www.instagram.com/lemarche.coffee" +
 					"\nПо всем вопросам: @aydar_rafikoff";
-				var keyboard = await GetHomeKeyboard(selectItem.ChatId);
+				var keyboard = await GetHomeKeyboard(selectItem.ChatId, selectItem);
 				var markup = new InlineKeyboardMarkup(keyboard);
 
 				return new MessageKeyboard(markup, text, selectItem.ChatId);
@@ -109,7 +110,7 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 			}
 
 			if (selectItem.Type == IncomeMessageType.CleanBasket) {
-				var keyboard = await GetHomeKeyboard(selectItem.ChatId);
+				var keyboard = await GetHomeKeyboard(selectItem.ChatId, selectItem);
 
 				var markup = new InlineKeyboardMarkup(keyboard);
 
@@ -133,8 +134,10 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 			if (selectItem.Type == IncomeMessageType.Paid) {
 				var client = await _mediator.Send(new GetClientByTelegramChatId(selectItem.ChatId));
 				var order = client.Orders?.FirstOrDefault(o => !o.DateCompleted.HasValue);
+				var ordersCount = client.Orders?.Count();
 				var basket = await _mediator.Send(new GetBasketByOrderId(order.Id));
-				var keyboard = GetPaidKeyboard(basket.Select(b => b.Product.Price + (b.ProductParameter?.Price ?? 0)).Sum());
+				var totalSum = (int)OrderHelper.GetPrice(basket, selectItem.Discount);
+				var keyboard = GetPaidKeyboard(totalSum, ordersCount, selectItem.Discount);
 				var categories = await _mediator.Send(new GetCategories());
 
 				var markup = new InlineKeyboardMarkup(keyboard);
@@ -159,7 +162,7 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 					.Where(o => o.DateCompleted.HasValue)
 					.OrderByDescending(o => o.DateCompleted)
 					.FirstOrDefault();
-				var keyboard = await GetHomeKeyboard(selectItem.ChatId);
+				var keyboard = await GetHomeKeyboard(selectItem.ChatId, selectItem);
 
 				var markup = new InlineKeyboardMarkup(keyboard);
 
@@ -232,19 +235,34 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 			yield return CreateButton(new SelectItem { Type = IncomeMessageType.Products, CategoryId = product.CategoryId }, _backButtonAlias);
 		}
 
-		private IEnumerable<IEnumerable<InlineKeyboardButton>> GetPaidKeyboard(decimal totalSum) {
+		private static IEnumerable<IEnumerable<InlineKeyboardButton>> GetPaidKeyboard(decimal totalSum, int? ordersCount, decimal? discount) {
 			yield return CreateLink($"Ссылка на оплату - {totalSum} рублей", @"https://money.alfabank.ru/p2p/web/transfer/arafikov3739");
-			yield return CreateButton(new SelectItem { Type = IncomeMessageType.Paymented }, "Я оплатил(а)");
+
+			if (ordersCount.HasValue && !discount.HasValue) {
+				switch (ordersCount.Value) {
+					case 1:
+						yield return CreateButton(new SelectItem { Type = IncomeMessageType.Paid, Discount = 30m }, "Получить скидку 30%");
+						break;
+					case 2:
+						yield return CreateButton(new SelectItem { Type = IncomeMessageType.Paid, Discount = 20m }, "Получить скидку 20%");
+						break;
+					case 3:
+						yield return CreateButton(new SelectItem { Type = IncomeMessageType.Paid, Discount = 10m }, "Получить скидку 10%");
+						break;
+				}
+			}
+
+			yield return CreateButton(new SelectItem { Type = IncomeMessageType.Paymented, Discount = discount }, "Я оплатил(а)");
 			yield return CreateButton(new SelectItem { Type = IncomeMessageType.CleanBasket }, "Я передумал(а)");
 			yield return CreateButton(new SelectItem { Type = IncomeMessageType.Home }, _backButtonAlias);
 		}
 
-		private async Task<IEnumerable<IEnumerable<InlineKeyboardButton>>> GetHomeKeyboard(long chatId) {
-			var keyboard = new List<IEnumerable<InlineKeyboardButton>>();
-
-			keyboard.Add(CreateButton(new SelectItem { Type = IncomeMessageType.Categories }, "Сделать заказ"));
-			keyboard.Add(CreateButton(new SelectItem { Type = IncomeMessageType.Address }, "Узнать aдрес"));
-			keyboard.Add(CreateButton(new SelectItem { Type = IncomeMessageType.Contacts }, "Контакты"));
+		private async Task<IEnumerable<IEnumerable<InlineKeyboardButton>>> GetHomeKeyboard(long chatId, SelectItem selectItem) {
+			var keyboard = new List<IEnumerable<InlineKeyboardButton>> {
+				CreateButton(new SelectItem { Type = IncomeMessageType.Categories }, "Сделать заказ"),
+				CreateButton(new SelectItem { Type = IncomeMessageType.Address }, "Узнать aдрес"),
+				CreateButton(new SelectItem { Type = IncomeMessageType.Contacts }, "Контакты")
+			};
 
 			var client = await _mediator.Send(new GetClientByTelegramChatId(chatId));
 			if (client == null) {
@@ -261,7 +279,7 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 				return keyboard;
 			}
 			
-			var totalSum = basket.Select(b => b.Product.Price).Sum();
+			var totalSum = (int)OrderHelper.GetPrice(basket, selectItem.Discount);
 			var paidButtonMessageType = order.DateReceiving.HasValue
 				? IncomeMessageType.Paid
 				: IncomeMessageType.ReceivingTime;

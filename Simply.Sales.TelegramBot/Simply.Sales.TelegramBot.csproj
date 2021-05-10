@@ -7,6 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="sqlitedemo.db" />
+    <None Remove="sqlitedemo.db-shm" />
+    <None Remove="sqlitedemo.db-wal" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="Configuration\" />
   </ItemGroup>
 

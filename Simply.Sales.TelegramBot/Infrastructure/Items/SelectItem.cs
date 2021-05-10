@@ -15,5 +15,7 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Items {
 		public int? OrderId { get; set; }
 
 		public long ChatId { get; set; }
+
+		public decimal? Discount { get; set; }
 	}
 }

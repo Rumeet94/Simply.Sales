@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Text.Json;
@@ -13,12 +14,14 @@ using Simply.Sales.BLL.DbRequests.Requests.Queries.Clients.Clients;
 using Simply.Sales.BLL.DbRequests.Requests.Queries.Sales.Baskets;
 using Simply.Sales.BLL.DbRequests.Requests.Queries.Sales.Categories;
 using Simply.Sales.BLL.DbRequests.Requests.Queries.Sales.ProductsParameters;
+using Simply.Sales.BLL.Dto.Clients;
 using Simply.Sales.BLL.Dto.Sales;
 using Simply.Sales.BLL.Dto.Sales.Enums;
 using Simply.Sales.BLL.Extensions;
 using Simply.Sales.BLL.Providers;
 using Simply.Sales.TelegramBot.Infrastructure.Enums;
 using Simply.Sales.TelegramBot.Infrastructure.Factories.Messages;
+using Simply.Sales.TelegramBot.Infrastructure.Helpers;
 using Simply.Sales.TelegramBot.Infrastructure.Items;
 using Simply.Sales.TelegramBot.Infrastructure.Items.Keyboards;
 using Simply.Sales.TelegramBot.Infrastructure.Servicies.Client;
@@ -196,11 +199,15 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Servicies.Message.Handler {
 
 					var basket = await _mediator.Send(new GetBasketByOrderId(order.Id));
 					var categories = await _mediator.Send(new GetCategories());
-
+					var totalSum = (int) OrderHelper.GetPrice(basket, selectItem.Discount);
+					var discountMessage = selectItem.Discount.HasValue
+						? $" , скидка {selectItem.Discount.Value}%"
+						: "";
 					var tomorrow = order.DateReceiving.Value < DateTime.Now ? " завтра" : "";
 					var text = $"Клиент {client.Name} (@{callback.From.Username}, {client.PhoneNumber}) " +
-						$"подтвердил(а) оплату заказа №{order.Id}. Проверьте зачисление средств ({basket.Select(b => b.Product.Price).Sum()} рублей). \n\n" +
-						$"Заберет{tomorrow} в {order.DateReceiving.Value.ToString("HH:mm")} \n\n" +
+						$"подтвердил(а) оплату заказа №{order.Id}. Проверьте зачисление средств ({totalSum} рублей" +
+						$"{discountMessage}). \n\n" +
+						$"Заберет{tomorrow} в {order.DateReceiving.Value:HH:mm} \n\n" +
 						"Заказ: \n" +
 							string.Join("\n", basket.Select(p => {
 								var parameter = p.ProductParameter == null ? string.Empty : $"(сироп: {p.ProductParameter.Name})";

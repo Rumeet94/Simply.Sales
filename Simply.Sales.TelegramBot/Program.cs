@@ -29,11 +29,16 @@ namespace Simply.Sales.TelegramBot {
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder => {
                     webBuilder.UseStartup<Startup>();
+                    webBuilder.UseKestrel(options =>
+                        options.Limits.KeepAliveTimeout = new TimeSpan(17, 0, 0)
+                    );
                 })
+
                 .ConfigureLogging(logging => {
                     logging.ClearProviders();
                     logging.SetMinimumLevel(LogLevel.Trace);
                 })
-                .UseNLog();  // NLog: Setup NLog for Dependency injection
+                .UseNLog();
+                 // NLog: Setup NLog for Dependency injection
     }
 }

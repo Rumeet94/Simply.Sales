@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Net.Http;
@@ -14,6 +15,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 using Simply.Sales.BLL.DbRequests.Handlers.Commands.Clients.Clients;
 using Simply.Sales.BLL.DbRequests.Handlers.Commands.Sales.Baskets;
@@ -59,6 +61,7 @@ namespace Simply.Sales.TelegramBot {
 				options.UseSqlite(b => b.MigrationsAssembly("Simply.Sales.DLL"))
 			);
 
+			services.AddHttpClient();
 			services.AddSingleton<IDbModelsCreaterMapper, DbModelsCreaterMapper>();
 			services.AddSingleton<IDbModelsCreater, DbModelsCreater>();
 
@@ -88,7 +91,13 @@ namespace Simply.Sales.TelegramBot {
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-		public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IBotService botService) {
+		public void Configure(
+			IApplicationBuilder app,
+			IWebHostEnvironment env,
+			IBotService botService,
+			IHttpClientFactory httpClientFactory,
+			ILogger<Startup> logger
+		) {
 			Task.Run(() => botService.Watch()).Wait();
 
 			if (env.IsDevelopment()) {
@@ -97,11 +106,28 @@ namespace Simply.Sales.TelegramBot {
 			else {
 				Task.Run(() => {
 					while (true) {
-						using var client = new HttpClient();
+						try {
+							using var client = httpClientFactory.CreateClient();
 
-						client.GetAsync("http://rumeet94-001-site1.htempurl.com/");
+							client.GetAsync("http://rumeet94-001-site1.htempurl.com/");
 
-						Thread.Sleep(5 * 60 * 1000);
+							using var scope = app.ApplicationServices.CreateScope();
+
+							var repo1 = scope.ServiceProvider.GetRequiredService<IDbRepository<TelegramClient>>();
+							var repo2 = scope.ServiceProvider.GetRequiredService<IDbRepository<Category>>();
+							var repo3 = scope.ServiceProvider.GetRequiredService<IDbRepository<Product>>();
+							var repo4 = scope.ServiceProvider.GetRequiredService<IDbRepository<ProductParameter>>();
+							var repo5 = scope.ServiceProvider.GetRequiredService<IDbRepository<BasketItem>>();
+							var repo6 = scope.ServiceProvider.GetRequiredService<IDbRepository<Order>>();
+							var repo7 = scope.ServiceProvider.GetRequiredService<IDbRepository<Setting>>();
+
+							botService.Watch();
+						}
+						catch (Exception e) {
+							logger.LogError(e.Message);
+						}
+
+						Thread.Sleep(10 * 60 * 1000);
 					}
 				});
 
