@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Globalization;
+using System.Net.Http;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 
 using MediatR;
@@ -93,6 +95,16 @@ namespace Simply.Sales.TelegramBot {
 				app.UseDeveloperExceptionPage();
 			}
 			else {
+				Task.Run(() => {
+					while (true) {
+						using var client = new HttpClient();
+
+						client.GetAsync("http://rumeet94-001-site1.htempurl.com/");
+
+						Thread.Sleep(5 * 60 * 1000);
+					}
+				});
+
 				app.UseExceptionHandler("/Home/Error");
 				// The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
 				app.UseHsts();
