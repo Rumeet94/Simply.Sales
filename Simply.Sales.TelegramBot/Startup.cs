@@ -127,7 +127,7 @@ namespace Simply.Sales.TelegramBot {
 							logger.LogError(e.Message);
 						}
 
-						Thread.Sleep(10 * 60 * 1000);
+						Thread.Sleep(5 * 60 * 1000);
 					}
 				});
 

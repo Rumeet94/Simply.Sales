@@ -69,7 +69,7 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 
 				return new MessageKeyboard(
 					markup,
-					"Что Вы хотите заказать? \n Выбирете и нажмите на продукт. " +
+					"Что Вы хотите заказать? \n Выберите и нажмите на продукт. " +
 						"Для возвращения в меню нажмите на кнопку - 'Назад'",
 					selectItem.ChatId
 				);
