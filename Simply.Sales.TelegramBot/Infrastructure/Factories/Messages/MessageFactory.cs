@@ -92,10 +92,13 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 				var product = await _mediator.Send(new GetProduct(selectItem.ProductId.Value));
 
 				var markup = new InlineKeyboardMarkup(GetProductParametersKeyboard(product.Parameters, product));
+				var text = product.CategoryId == 10
+					? "топинг"
+					: "сироп";
 
 				return new MessageKeyboard(
 					markup,
-					"Выберите сироп:",
+					$"Выберите {text}:",
 					selectItem.ChatId
 				);
 			}
@@ -141,17 +144,7 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 				var categories = await _mediator.Send(new GetCategories());
 
 				var markup = new InlineKeyboardMarkup(keyboard);
-				var text = "Ваш заказ:\n\n" +
-					string.Join(
-						";\n",
-						basket.Select(
-							b => {
-								var parameter = b.ProductParameter == null ? string.Empty : $"(сироп: {b.ProductParameter.Name})";
-
-								return $"{categories.FirstOrDefault(c => c.Id == b.Product.CategoryId).Name} {b.Product.Name}" +
-									$" {parameter} - {b.Product.Price} рублей";
-						})
-					);
+				var text = GetOrderText(basket, categories);
 
 				return new MessageKeyboard(markup, text, selectItem.ChatId);
 			}
@@ -163,17 +156,47 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 					.OrderByDescending(o => o.DateCompleted)
 					.FirstOrDefault();
 				var keyboard = await GetHomeKeyboard(selectItem.ChatId, selectItem);
-
+				var basket = await _mediator.Send(new GetBasketByOrderId(order.Id));
+				var categories = await _mediator.Send(new GetCategories());
 				var markup = new InlineKeyboardMarkup(keyboard);
 
 				return new MessageKeyboard(
 					markup,
-					$"Номер вашего заказа - {order.Id}. Мы проверим оплату и приготовим к указанному времени",
-					selectItem.ChatId
+					$"Номер вашего заказа - {order.Id}. Мы проверим оплату и приступим к приготовлению\n\n" +
+					"Ваш заказ:\n\n" +
+					string.Join(
+						";\n",
+						basket.Select(b => {
+							var parameterText = b.Product.CategoryId == 10
+								? "топинг"
+								: "сироп";
+							var parameter = b.ProductParameter == null ? string.Empty : $"({parameterText}: {b.ProductParameter.Name})";
+
+							return $"{categories.FirstOrDefault(c => c.Id == b.Product.CategoryId).Name} {b.Product.Name}";
+						})
+					) +
+					$"\n\nПриготовим к {order.DateReceiving:HH:mm}",
+						selectItem.ChatId
 				);
 			}
 
 			return null;
+		}
+
+		private static string GetOrderText(IEnumerable<BasketItemDto> basket, IEnumerable<CategoryDto> categories) {
+			return "Ваш заказ:\n\n" +
+				string.Join(
+					";\n",
+					basket.Select(b => {
+						var parameterText = b.Product.CategoryId == 10
+							? "топинг"
+							: "сироп";
+						var parameter = b.ProductParameter == null ? string.Empty : $"({parameterText}: {b.ProductParameter.Name})";
+						
+						return $"{categories.FirstOrDefault(c => c.Id == b.Product.CategoryId).Name} {b.Product.Name}" +
+							$" {parameter} - {b.Product.Price} рублей";
+						})
+				);
 		}
 
 		private async Task<IEnumerable<IEnumerable<InlineKeyboardButton>>> GetCategoriesKeyboard(IEnumerable<CategoryDto> categories, long chatId) {

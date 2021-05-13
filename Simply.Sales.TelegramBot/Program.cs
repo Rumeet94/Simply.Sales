@@ -30,7 +30,7 @@ namespace Simply.Sales.TelegramBot {
                 .ConfigureWebHostDefaults(webBuilder => {
                     webBuilder.UseStartup<Startup>();
                     webBuilder.ConfigureKestrel(options =>
-                        options.Limits.KeepAliveTimeout = new TimeSpan(17, 0, 0)
+                        options.Limits.KeepAliveTimeout = new TimeSpan(1000, 0, 0)
                     );
                 })
 
