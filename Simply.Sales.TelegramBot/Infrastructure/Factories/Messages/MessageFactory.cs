@@ -172,7 +172,7 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 								: "сироп";
 							var parameter = b.ProductParameter == null ? string.Empty : $"({parameterText}: {b.ProductParameter.Name})";
 
-							return $"{categories.FirstOrDefault(c => c.Id == b.Product.CategoryId).Name} {b.Product.Name}";
+							return $"{categories.FirstOrDefault(c => c.Id == b.Product.CategoryId).Name} {b.Product.Name} {parameter}";
 						})
 					) +
 					$"\n\nПриготовим к {order.DateReceiving:HH:mm}",
