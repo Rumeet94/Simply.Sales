@@ -7,8 +7,7 @@ using Simply.Sales.BLL.Dto.Sales;
 namespace Simply.Sales.TelegramBot.Infrastructure.Helpers {
 	public static class OrderHelper {
 		public static decimal GetPrice(IEnumerable<BasketItemDto> basket, decimal? discount) {
-			var price = basket.Select(b => b.Product.Price).Sum();
-
+			var price = basket.Select(b => b.Product.Price + (b.ProductParameter?.Price ?? 0)).Sum();
 			if (!discount.HasValue) {
 				return price;
 			}

@@ -110,6 +110,7 @@ namespace Simply.Sales.TelegramBot {
 							using var client = httpClientFactory.CreateClient();
 
 							client.GetAsync("http://rumeet94-001-site1.htempurl.com/");
+							client.GetAsync("http://rumeet94-001-site1.htempurl.com/api/telegram-bot/start");
 
 							using var scope = app.ApplicationServices.CreateScope();
 
@@ -127,7 +128,7 @@ namespace Simply.Sales.TelegramBot {
 							logger.LogError(e.Message);
 						}
 
-						Thread.Sleep(5 * 60 * 1000);
+						Thread.Sleep(2 * 60 * 1000);
 					}
 				});
 

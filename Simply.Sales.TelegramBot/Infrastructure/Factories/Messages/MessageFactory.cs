@@ -92,9 +92,7 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 				var product = await _mediator.Send(new GetProduct(selectItem.ProductId.Value));
 
 				var markup = new InlineKeyboardMarkup(GetProductParametersKeyboard(product.Parameters, product));
-				var text = product.CategoryId == 10
-					? "топинг"
-					: "сироп";
+				var text = GetParameterText(product.CategoryId);
 
 				return new MessageKeyboard(
 					markup,
@@ -167,9 +165,7 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 					string.Join(
 						";\n",
 						basket.Select(b => {
-							var parameterText = b.Product.CategoryId == 10
-								? "топинг"
-								: "сироп";
+							var parameterText = GetParameterText(b.Product.CategoryId);
 							var parameter = b.ProductParameter == null ? string.Empty : $"({parameterText}: {b.ProductParameter.Name})";
 
 							return $"{categories.FirstOrDefault(c => c.Id == b.Product.CategoryId).Name} {b.Product.Name} {parameter}";
@@ -183,18 +179,23 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 			return null;
 		}
 
+		private static string GetParameterText(int categoryId) =>
+			categoryId == 10
+				? "топинг"
+				: categoryId == 13
+					? "вкус"
+					: "сироп";
+
 		private static string GetOrderText(IEnumerable<BasketItemDto> basket, IEnumerable<CategoryDto> categories) {
 			return "Ваш заказ:\n\n" +
 				string.Join(
 					";\n",
 					basket.Select(b => {
-						var parameterText = b.Product.CategoryId == 10
-							? "топинг"
-							: "сироп";
+						var parameterText = GetParameterText(b.Product.CategoryId);
 						var parameter = b.ProductParameter == null ? string.Empty : $"({parameterText}: {b.ProductParameter.Name})";
 						
 						return $"{categories.FirstOrDefault(c => c.Id == b.Product.CategoryId).Name} {b.Product.Name}" +
-							$" {parameter} - {b.Product.Price} рублей";
+							$" {parameter} - {b.Product.Price + (b.ProductParameter?.Price ?? 0)} рублей";
 						})
 				);
 		}
@@ -254,7 +255,14 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 				yield return CreateButton(new SelectItem { Type = IncomeMessageType.Basket, ProductParameterId = item.Id }, $"{item.Name}");
 			}
 
-			yield return CreateButton(new SelectItem { Type = IncomeMessageType.Basket, ProductId = product.Id }, "Без сиропа");
+			if (product.CategoryId == 10) {
+				yield return CreateButton(new SelectItem { Type = IncomeMessageType.Basket, ProductId = product.Id }, "Без топинга");
+			}
+
+			if (product.CategoryId > 0 && product.CategoryId < 6) {
+				yield return CreateButton(new SelectItem { Type = IncomeMessageType.Basket, ProductId = product.Id }, "Без сиропа");
+			}
+			
 			yield return CreateButton(new SelectItem { Type = IncomeMessageType.Products, CategoryId = product.CategoryId }, _backButtonAlias);
 		}
 

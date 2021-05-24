@@ -33,6 +33,8 @@ namespace Simply.Sales.BLL.DbRequests.Handlers.Queries.Sales.Categories {
 			var repository = scope.ServiceProvider.GetRequiredService<IDbRepository<Category>>();
 			var item = await repository.GetSingleAsync(request.Id);
 
+			item.Products = item.Products.Where(p => p.IsVisible);
+
 			return _mapper.Map<CategoryDto>(item);
 		}
 	}

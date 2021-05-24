@@ -247,7 +247,12 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Servicies.Message.Handler {
 
 			var keyboard = await _messageFactory.CreateKeyboard(selectItem);
 
-			await _messageService.DeleteMessage(callback.Message.Chat.Id, callback.Message.MessageId);
+			try {
+				await _messageService.DeleteMessage(callback.Message.Chat.Id, callback.Message.MessageId);
+			}
+			catch (Exception e) {
+				
+			}
 
 			if (selectItem.Type == IncomeMessageType.Address) {
 				await _messageService.SendVenueMessage(
@@ -255,7 +260,7 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Servicies.Message.Handler {
 					54.30847440136837f,
 					48.38771581649781f,
 					keyboard.Markup,
-					"Кофейня Le Marche",
+					"Кофейня RAF Coffee",
 					"улица Минаева, д. 11, ТРК Спартак"
 
 				);
