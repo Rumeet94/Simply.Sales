@@ -104,33 +104,33 @@ namespace Simply.Sales.TelegramBot {
 				app.UseDeveloperExceptionPage();
 			}
 			else {
-				Task.Run(() => {
-					while (true) {
-						try {
-							using var client = httpClientFactory.CreateClient();
+				//Task.Run(() => {
+				//	while (true) {
+				//		try {
+				//			using var client = httpClientFactory.CreateClient();
 
-							client.GetAsync("http://rumeet94-001-site1.htempurl.com/");
-							client.GetAsync("http://rumeet94-001-site1.htempurl.com/api/telegram-bot/start");
+				//			client.GetAsync("http://rumeet94-001-site1.htempurl.com/");
+				//			client.GetAsync("http://rumeet94-001-site1.htempurl.com/api/telegram-bot/start");
 
-							using var scope = app.ApplicationServices.CreateScope();
+				//			using var scope = app.ApplicationServices.CreateScope();
 
-							var repo1 = scope.ServiceProvider.GetRequiredService<IDbRepository<TelegramClient>>();
-							var repo2 = scope.ServiceProvider.GetRequiredService<IDbRepository<Category>>();
-							var repo3 = scope.ServiceProvider.GetRequiredService<IDbRepository<Product>>();
-							var repo4 = scope.ServiceProvider.GetRequiredService<IDbRepository<ProductParameter>>();
-							var repo5 = scope.ServiceProvider.GetRequiredService<IDbRepository<BasketItem>>();
-							var repo6 = scope.ServiceProvider.GetRequiredService<IDbRepository<Order>>();
-							var repo7 = scope.ServiceProvider.GetRequiredService<IDbRepository<Setting>>();
+				//			var repo1 = scope.ServiceProvider.GetRequiredService<IDbRepository<TelegramClient>>();
+				//			var repo2 = scope.ServiceProvider.GetRequiredService<IDbRepository<Category>>();
+				//			var repo3 = scope.ServiceProvider.GetRequiredService<IDbRepository<Product>>();
+				//			var repo4 = scope.ServiceProvider.GetRequiredService<IDbRepository<ProductParameter>>();
+				//			var repo5 = scope.ServiceProvider.GetRequiredService<IDbRepository<BasketItem>>();
+				//			var repo6 = scope.ServiceProvider.GetRequiredService<IDbRepository<Order>>();
+				//			var repo7 = scope.ServiceProvider.GetRequiredService<IDbRepository<Setting>>();
 
-							botService.Watch();
-						}
-						catch (Exception e) {
-							logger.LogError(e.Message);
-						}
+				//			botService.Watch();
+				//		}
+				//		catch (Exception e) {
+				//			logger.LogError(e.Message);
+				//		}
 
-						Thread.Sleep(2 * 60 * 1000);
-					}
-				});
+				//		Thread.Sleep(2 * 60 * 1000);
+				//	}
+				//});
 
 				app.UseExceptionHandler("/Home/Error");
 				// The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.

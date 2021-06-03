@@ -6,6 +6,8 @@
 	  <UserSecretsId>6e8be4c2-2c29-4bf4-875d-e2f86bc679f5</UserSecretsId>
 	  <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 	  <DockerfileContext>.</DockerfileContext>
+	  <DockerfileTag>rumeet94/raf_coffee_bot:latest</DockerfileTag>
+	  <!--<DockerfileBuildArguments>-t rumeet94/raf_coffee_bot:latest</DockerfileBuildArguments>-->
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,6 +18,7 @@
 
   <ItemGroup>
     <Folder Include="Configuration\" />
+    <Folder Include="db\" />
   </ItemGroup>
 
   <ItemGroup>
