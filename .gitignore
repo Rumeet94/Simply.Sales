@@ -351,3 +351,5 @@ MigrationBackup/
 /Simply.Sales.TelegramBot/leMarcheDb.db
 /Simply.Sales.TelegramBot/leMarcheDb.db-shm
 /Simply.Sales.TelegramBot/leMarcheDb.db-wal
+/Simply.Sales.TelegramBot/db/raf_coffee.db-shm
+/Simply.Sales.TelegramBot/db/raf_coffee.db-wal

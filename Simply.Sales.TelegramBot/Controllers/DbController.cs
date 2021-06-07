@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.Contracts;
-using System.Linq;
+﻿using System.Diagnostics.Contracts;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 using MediatR;
@@ -9,6 +7,8 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 using Simply.Sales.BLL.DbRequests.Requests.Commands.Db;
+using Simply.Sales.BLL.DbRequests.Requests.Queries.Clients.Clients;
+using Simply.Sales.TelegramBot.Configuration;
 
 namespace Simply.Sales.TelegramBot.Controllers {
 	[Route("api/db")]
@@ -32,6 +32,18 @@ namespace Simply.Sales.TelegramBot.Controllers {
 			catch {
 				return BadRequest();
 			}
+		}
+
+		[HttpPost("chatIds")]
+		public async Task<IActionResult> GetChatIds([FromBody] string authToken) {
+			if(!AuthHelper.GetMd5Token().Equals(authToken)) {
+				return BadRequest();
+			}
+
+			var chatIds = await _mediator.Send(new GetClientChatIds());
+			var json = JsonSerializer.Serialize(chatIds);
+
+			return new ContentResult { Content = json };
 		}
 	}
 }
