@@ -4,6 +4,8 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Items {
 	public class SelectItem {
 		public IncomeMessageType Type { get; set; }
 
+		public IncomeMessageType OType { get; set; }
+
 		public int? CategoryId { get; set; }
 
 		public int? ProductId { get; set; }
@@ -17,5 +19,7 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Items {
 		public long ChatId { get; set; }
 
 		public decimal? Discount { get; set; }
+
+		public bool? NeedDelivery { get; set; }
 	}
 }

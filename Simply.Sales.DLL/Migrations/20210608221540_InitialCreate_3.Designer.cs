@@ -9,8 +9,8 @@ using Simply.Sales.DLL.Context;
 namespace Simply.Sales.DLL.Migrations
 {
     [DbContext(typeof(SalesDbContext))]
-    [Migration("20210430155405_Initial")]
-    partial class Initial
+    [Migration("20210608221540_InitialCreate_3")]
+    partial class InitialCreate_3
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -78,7 +78,7 @@ namespace Simply.Sales.DLL.Migrations
                     b.Property<int>("ProductId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("ProductParameterId")
+                    b.Property<int?>("ProductParameterId")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
@@ -123,6 +123,9 @@ namespace Simply.Sales.DLL.Migrations
                     b.Property<int>("ClientId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("Comment")
+                        .HasColumnType("TEXT");
+
                     b.Property<DateTime?>("DateCompleted")
                         .HasColumnType("TEXT");
 
@@ -133,6 +136,9 @@ namespace Simply.Sales.DLL.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<bool>("IsCanceled")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool?>("NeedDelivery")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("OrderState")
@@ -243,9 +249,7 @@ namespace Simply.Sales.DLL.Migrations
 
                     b.HasOne("Simply.Sales.DLL.Models.Sales.ProductParameter", "ProductParameter")
                         .WithMany("Baskets")
-                        .HasForeignKey("ProductParameterId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("ProductParameterId");
 
                     b.Navigation("Order");
 

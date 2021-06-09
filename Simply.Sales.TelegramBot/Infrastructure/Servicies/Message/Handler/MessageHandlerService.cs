@@ -104,39 +104,60 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Servicies.Message.Handler {
 			}
 
 			var order = client.Orders?.FirstOrDefault(o => !o.DateCompleted.HasValue);
-			if (order != null && order.OrderState == OrderStateDto.ReceivingTime) {
-				var stringTime = message.Text.Replace(".", ":");
-				var orderDateTime = _workTimeProvider.GetDateTimeInWorkPeriod(stringTime);
-				if (orderDateTime.HasValue) {
-					order.DateReceiving = orderDateTime.Value;
-					order.OrderState = OrderStateDto.Paid;
+			if (order != null && order.OrderState == OrderStateDto.Parameters) {
+				if (!order.DateReceiving.HasValue) {
+					var stringTime = message.Text.Replace(".", ":");
+					var orderDateTime = _workTimeProvider.GetDateTimeInWorkPeriod(stringTime);
+					if (orderDateTime.HasValue) {
+						order.DateReceiving = orderDateTime.Value;
 
-					await _mediator.Send(new UpdateOrder(order));
-					await _messageService.SendTextMessage(
-						_officeChatId,
-						$"Создан заказ №{order.Id}. Ожидается оплата от клиента {client.Name} (@{message.From.Username}, {client.PhoneNumber}).");
+						await _mediator.Send(new UpdateOrder(order));
 
-					var buttons = await _messageFactory.CreateKeyboard(
-						new SelectItem {
-							Type = IncomeMessageType.Paid,
-							ChatId = message.Chat.Id
-						}
-					);
+						var buttons = await _messageFactory.CreateKeyboard(
+							new SelectItem {
+								Type = IncomeMessageType.Delivery,
+								ChatId = message.Chat.Id
+							}
+						);
+
+						await _messageService.DeleteMessage(message.Chat.Id, --message.MessageId);
+						await _messageService.SendKeyboardMessage(buttons);
+
+						return;
+					}
 
 					await _messageService.DeleteMessage(message.Chat.Id, --message.MessageId);
-					await _messageService.SendKeyboardMessage(buttons);
+					await _messageService.SendTextMessage(
+						client.ChatId,
+						"Укажите корректное время. Формат чч:mm. Пример: 17:00" +
+							$"Заказы принимаются с { _workTimeProvider.StartWorkTime.ToString(_workTimeFormat)} " +
+							$"до { _workTimeProvider.EndWorkTime.ToString(_workTimeFormat)}");
 
 					return;
 				}
 
-				await _messageService.DeleteMessage(message.Chat.Id, --message.MessageId);
-				await _messageService.SendTextMessage(
-					client.ChatId,
-					"Укажите корректное время. Формат чч:mm. Пример: 17:00" +
-						$"Заказы принимаются с { _workTimeProvider.StartWorkTime.ToString(_workTimeFormat)} " +
-						$"до { _workTimeProvider.EndWorkTime.ToString(_workTimeFormat)}");
+				if (order != null && order.NeedDelivery.HasValue) {
+					order.Comment = message.Text;
+					order.OrderState = OrderStateDto.Paid;
 
-				return;
+					await _mediator.Send(new UpdateOrder(order));
+
+					var buttons = await _messageFactory.CreateKeyboard(
+							new SelectItem {
+								Type = IncomeMessageType.Paid,
+								ChatId = message.Chat.Id
+							}
+						);
+
+					await _messageService.DeleteMessage(message.Chat.Id, --message.MessageId);
+					await _messageService.SendKeyboardMessage(buttons);
+					await _messageService.SendTextMessage(
+						_officeChatId,
+						$"Создан заказ №{order.Id}. Ожидается оплата от клиента {client.Name} (@{message.From.Username}, {client.PhoneNumber})."
+					);
+
+					return;
+				}
 			}
 
 			var keyboard = await _messageFactory.CreateKeyboard(new SelectItem { Type = IncomeMessageType.Home, ChatId = message.Chat.Id });
@@ -200,24 +221,42 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Servicies.Message.Handler {
 					var basket = await _mediator.Send(new GetBasketByOrderId(order.Id));
 					var categories = await _mediator.Send(new GetCategories());
 					var totalSum = (int) OrderHelper.GetPrice(basket, selectItem.Discount);
-					var discountMessage = selectItem.Discount.HasValue
+					var discountText = selectItem.Discount.HasValue
 						? $" , скидка {selectItem.Discount.Value}%"
 						: "";
-					var tomorrow = order.DateReceiving.Value < DateTime.Now ? " завтра" : "";
+					var deliveryText = order.NeedDelivery.Value
+						? "нужна"
+						: "не нужна";
 					var text = $"Клиент {client.Name} (@{callback.From.Username}, {client.PhoneNumber}) " +
 						$"подтвердил(а) оплату заказа №{order.Id}. Проверьте зачисление средств ({totalSum} рублей" +
-						$"{discountMessage}). \n\n" +
-						$"Заберет{tomorrow} в {order.DateReceiving.Value:HH:mm} \n\n" +
+						$"{discountText}). \n\n" +
+						$"Время выдачи заказа: {order.DateReceiving.Value:HH:mm} \n\n" +
 						"Заказ: \n" +
 							string.Join("\n", basket.Select(p => {
 								var parameter = p.ProductParameter == null ? string.Empty : $"(сироп: {p.ProductParameter.Name})";
 
 								return $"- {categories.FirstOrDefault(c => c.Id == p.Product.CategoryId).Name} {p.Product.Name} {parameter}";
-							})
-							);
+							})) +
+						$"\n\nДоставка: {deliveryText}" +
+						$"\n\nКомментарий: {order.Comment}" ;
 
 					await _messageService.SendTextMessage(_officeChatId, text);
 				}
+			}
+
+			if (selectItem.Type == IncomeMessageType.Paid) {
+				var order = client.Orders?.FirstOrDefault(o => !o.DateCompleted.HasValue);
+
+				if (string.IsNullOrWhiteSpace(order.Comment)) {
+					order.Comment = "без коментария";
+				}
+
+				order.OrderState = OrderStateDto.Paid;
+
+				await _mediator.Send(new UpdateOrder(order));
+				await _messageService.SendTextMessage(
+					_officeChatId,
+					$"Создан заказ №{order.Id}. Ожидается оплата от клиента {client.Name} (@{callback.Message.From.Username}, {client.PhoneNumber}).");
 			}
 
 			if (selectItem.Type == IncomeMessageType.CleanBasket) {
@@ -238,7 +277,25 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Servicies.Message.Handler {
 			if (selectItem.Type == IncomeMessageType.ReceivingTime) {
 				var order = client.Orders?.FirstOrDefault(o => !o.DateCompleted.HasValue);
 
-				order.OrderState = OrderStateDto.ReceivingTime;
+				order.NeedDelivery = null;
+				order.DateReceiving = null;
+				order.OrderState = OrderStateDto.Parameters;
+
+				await _mediator.Send(new UpdateOrder(order));
+			}
+
+			if (selectItem.Type == IncomeMessageType.Delivery) {
+				var order = client.Orders?.FirstOrDefault(o => !o.DateCompleted.HasValue);
+
+				order.Comment = null;
+
+				await _mediator.Send(new UpdateOrder(order));
+			}
+
+			if (selectItem.Type == IncomeMessageType.Comment) {
+				var order = client.Orders?.FirstOrDefault(o => !o.DateCompleted.HasValue);
+
+				order.NeedDelivery = selectItem.NeedDelivery;
 
 				await _mediator.Send(new UpdateOrder(order));
 			}
@@ -262,7 +319,6 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Servicies.Message.Handler {
 					keyboard.Markup,
 					"Кофейня RAF Coffee",
 					"улица Минаева, д. 11, ТРК Спартак"
-
 				);
 
 				return;

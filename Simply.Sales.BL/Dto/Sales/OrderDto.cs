@@ -16,6 +16,10 @@ namespace Simply.Sales.BLL.Dto.Sales {
 
 		public DateTime? DateCompleted { get; set; }
 
+		public bool? NeedDelivery { get; set; }
+
+		public string Comment { get; set; }
+
 		public IEnumerable<BasketItemDto> Basket { get; set; }
 
 		public bool IsCanceled { get; set; }

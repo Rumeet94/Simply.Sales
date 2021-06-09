@@ -53,7 +53,7 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 			}
 
 			if (selectItem.Type == IncomeMessageType.Contacts) {
-				var text = @"Наш инстаграм: https://www.instagram.com/lemarche.coffee" +
+				var text = @"Наш инстаграм: https://www.instagram.com/raf.coffeee" +
 					"\nПо всем вопросам: @aydar_rafikoff";
 				var keyboard = await GetHomeKeyboard(selectItem.ChatId, selectItem);
 				var markup = new InlineKeyboardMarkup(keyboard);
@@ -132,17 +132,53 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 				return new MessageKeyboard(markup, text, selectItem.ChatId);
 			}
 
+			if (selectItem.Type == IncomeMessageType.Delivery) {
+				var text = "Нужна ли вам доставка?\n" +
+					"Доставка работает в пределах ТЦ Спартак.";
+
+				var keyboard = new List<IEnumerable<InlineKeyboardButton>>() {
+					CreateButton(new SelectItem { Type = IncomeMessageType.Comment, NeedDelivery = true }, "Заказать доставку"),
+					CreateButton(new SelectItem { Type = IncomeMessageType.Comment,  NeedDelivery = false }, "Не нужна"),
+					CreateButton(new SelectItem { Type = IncomeMessageType.ReceivingTime }, _backButtonAlias)
+				};
+
+				var markup = new InlineKeyboardMarkup(keyboard);
+
+				return new MessageKeyboard(markup, text, selectItem.ChatId);
+			}
+
+			if (selectItem.Type == IncomeMessageType.Comment) {
+				var needDelivery = selectItem.NeedDelivery.HasValue && selectItem.NeedDelivery.Value;
+
+				var text = needDelivery
+					? "Для оформления доставки укажите этаж, номер офиса и уточняющий комментарий."
+					: "Укажите комментарий к заказу.";
+
+				var keyboard = needDelivery
+					? new List<IEnumerable<InlineKeyboardButton>>() {
+						CreateButton(new SelectItem { Type = IncomeMessageType.Delivery }, _backButtonAlias)
+					}
+					: new List<IEnumerable<InlineKeyboardButton>>() {
+						CreateButton(new SelectItem { Type = IncomeMessageType.Paid }, "Без комментария"),
+						CreateButton(new SelectItem { Type = IncomeMessageType.Delivery }, _backButtonAlias)
+					};
+
+					var markup = new InlineKeyboardMarkup(keyboard);
+
+				return new MessageKeyboard(markup, text, selectItem.ChatId);
+			}
+
 			if (selectItem.Type == IncomeMessageType.Paid) {
 				var client = await _mediator.Send(new GetClientByTelegramChatId(selectItem.ChatId));
 				var order = client.Orders?.FirstOrDefault(o => !o.DateCompleted.HasValue);
 				var ordersCount = client.Orders?.Count();
 				var basket = await _mediator.Send(new GetBasketByOrderId(order.Id));
 				var totalSum = (int)OrderHelper.GetPrice(basket, selectItem.Discount);
-				var keyboard = GetPaidKeyboard(totalSum, ordersCount, selectItem.Discount);
+				var keyboard = GetPaidKeyboard(ordersCount, selectItem.Discount);
 				var categories = await _mediator.Send(new GetCategories());
 
 				var markup = new InlineKeyboardMarkup(keyboard);
-				var text = GetOrderText(basket, categories);
+				var text = GetOrderText(basket, categories, totalSum);
 
 				return new MessageKeyboard(markup, text, selectItem.ChatId);
 			}
@@ -186,18 +222,19 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 					? "вкус"
 					: "сироп";
 
-		private static string GetOrderText(IEnumerable<BasketItemDto> basket, IEnumerable<CategoryDto> categories) {
+		private static string GetOrderText(IEnumerable<BasketItemDto> basket, IEnumerable<CategoryDto> categories, int totalSum) {
 			return "Ваш заказ:\n\n" +
 				string.Join(
 					";\n",
 					basket.Select(b => {
 						var parameterText = GetParameterText(b.Product.CategoryId);
 						var parameter = b.ProductParameter == null ? string.Empty : $"({parameterText}: {b.ProductParameter.Name})";
-						
+
 						return $"{categories.FirstOrDefault(c => c.Id == b.Product.CategoryId).Name} {b.Product.Name}" +
 							$" {parameter} - {b.Product.Price + (b.ProductParameter?.Price ?? 0)} рублей";
-						})
-				);
+					})) +
+					$"\n\nК оплате: {totalSum} рублей.\n\nОплата производится переводом на банковскую карту Сбербанка " +
+					$"по номерам карты 4276-4200-2390-1480 или телефона 8(996)953-73-23";
 		}
 
 		private async Task<IEnumerable<IEnumerable<InlineKeyboardButton>>> GetCategoriesKeyboard(IEnumerable<CategoryDto> categories, long chatId) {
@@ -225,7 +262,11 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 			}
 
 			var paidButtonMessageType = order.DateReceiving.HasValue
-				? IncomeMessageType.Paid
+				? order.NeedDelivery.HasValue
+					? string.IsNullOrWhiteSpace(order.Comment)
+						? IncomeMessageType.Comment
+						: IncomeMessageType.Paid
+					: IncomeMessageType.Delivery
 				: IncomeMessageType.ReceivingTime;
 
 			keyboard.Add(CreateButton(new SelectItem { Type = paidButtonMessageType }, "Далее➡️"));
@@ -266,9 +307,7 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 			yield return CreateButton(new SelectItem { Type = IncomeMessageType.Products, CategoryId = product.CategoryId }, _backButtonAlias);
 		}
 
-		private static IEnumerable<IEnumerable<InlineKeyboardButton>> GetPaidKeyboard(decimal totalSum, int? ordersCount, decimal? discount) {
-			yield return CreateLink($"Ссылка на оплату - {totalSum} рублей", @"https://money.alfabank.ru/p2p/web/transfer/arafikov3739");
-
+		private static IEnumerable<IEnumerable<InlineKeyboardButton>> GetPaidKeyboard(int? ordersCount, decimal? discount) {
 			if (ordersCount.HasValue && !discount.HasValue) {
 				switch (ordersCount.Value) {
 					case 1:
@@ -312,7 +351,11 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 			
 			var totalSum = (int)OrderHelper.GetPrice(basket, selectItem.Discount);
 			var paidButtonMessageType = order.DateReceiving.HasValue
-				? IncomeMessageType.Paid
+				? order.NeedDelivery.HasValue
+					? string.IsNullOrWhiteSpace(order.Comment)
+						? IncomeMessageType.Comment
+						: IncomeMessageType.Paid
+					: IncomeMessageType.Delivery
 				: IncomeMessageType.ReceivingTime;
 
 			keyboard.Add(CreateButton(new SelectItem { Type = paidButtonMessageType }, $"Оплатить заказ ({totalSum} рублей)"));

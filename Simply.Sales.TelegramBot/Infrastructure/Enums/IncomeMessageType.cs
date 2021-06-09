@@ -9,8 +9,10 @@
 		CleanBasket = 6,
 		Paid = 7,
 		ReceivingTime = 8,
-		Paymented = 9,
-		Address = 10,
-		Contacts = 11
+		Delivery = 9,
+		Comment = 10,
+		Paymented = 11,
+		Address = 12,
+		Contacts = 13
 	}
 }

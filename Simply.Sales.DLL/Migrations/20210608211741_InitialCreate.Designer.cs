@@ -9,8 +9,8 @@ using Simply.Sales.DLL.Context;
 namespace Simply.Sales.DLL.Migrations
 {
     [DbContext(typeof(SalesDbContext))]
-    [Migration("20210430161953_Initial_2")]
-    partial class Initial_2
+    [Migration("20210608211741_InitialCreate")]
+    partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {

@@ -16,6 +16,10 @@ namespace Simply.Sales.DLL.Models.Sales {
 
 		public DateTime? DateCompleted { get; set; }
 
+		public bool? NeedDelivery { get; set; }
+
+		public string Comment { get; set; }
+
 		public IEnumerable<BasketItem> Basket { get; set; }
 
 		public bool IsCanceled { get; set; }
