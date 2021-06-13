@@ -21,7 +21,8 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 	public class MessageFactory : IMessageFactory {
-		private const string _backButtonAlias = "Назад⬅️";
+		private const string _backButtonAlias = "Назад ⬅️";
+		private const string _addButtonAlias = "Добавить в заказ 📦";
 		private const string _workTimeFormat = "h\\:mm";
 
 		private readonly IMediator _mediator;
@@ -134,11 +135,11 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 
 			if (selectItem.Type == IncomeMessageType.Delivery) {
 				var text = "Нужна ли вам доставка?\n" +
-					"Доставка работает в пределах ТЦ Спартак.";
+					"Доставка работает в пределах ТЦ Спартак. Стоимость доставки 50 рублей. При заказе от 300 рублей доставим бесплатно.";
 
 				var keyboard = new List<IEnumerable<InlineKeyboardButton>>() {
-					CreateButton(new SelectItem { Type = IncomeMessageType.Comment, NeedDelivery = true }, "Заказать доставку"),
-					CreateButton(new SelectItem { Type = IncomeMessageType.Comment,  NeedDelivery = false }, "Не нужна"),
+					CreateButton(new SelectItem { Type = IncomeMessageType.Comment, NeedDelivery = true }, "Заказать доставку 🚕"),
+					CreateButton(new SelectItem { Type = IncomeMessageType.Comment,  NeedDelivery = false }, "Не нужна ❌"),
 					CreateButton(new SelectItem { Type = IncomeMessageType.ReceivingTime }, _backButtonAlias)
 				};
 
@@ -159,7 +160,7 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 						CreateButton(new SelectItem { Type = IncomeMessageType.Delivery }, _backButtonAlias)
 					}
 					: new List<IEnumerable<InlineKeyboardButton>>() {
-						CreateButton(new SelectItem { Type = IncomeMessageType.Paid }, "Без комментария"),
+						CreateButton(new SelectItem { Type = IncomeMessageType.Paid }, "Без комментария ❌"),
 						CreateButton(new SelectItem { Type = IncomeMessageType.Delivery }, _backButtonAlias)
 					};
 
@@ -173,14 +174,23 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 				var order = client.Orders?.FirstOrDefault(o => !o.DateCompleted.HasValue);
 				var ordersCount = client.Orders?.Count();
 				var basket = await _mediator.Send(new GetBasketByOrderId(order.Id));
-				var totalSum = (int)OrderHelper.GetPrice(basket, selectItem.Discount);
+				var totalSum = OrderHelper.GetPrice(basket, selectItem.Discount, order.NeedDelivery);
 				var keyboard = GetPaidKeyboard(ordersCount, selectItem.Discount);
 				var categories = await _mediator.Send(new GetCategories());
 
 				var markup = new InlineKeyboardMarkup(keyboard);
-				var text = GetOrderText(basket, categories, totalSum);
+				var text = GetOrderText(basket, categories, totalSum, order.NeedDelivery);
 
 				return new MessageKeyboard(markup, text, selectItem.ChatId);
+			}
+
+			if (selectItem.Type == IncomeMessageType.EditOrder) {
+				var client = await _mediator.Send(new GetClientByTelegramChatId(selectItem.ChatId));
+				var order = client.Orders?.FirstOrDefault(o => !o.DateCompleted.HasValue);
+				var keyboard = await GetEditKeyboard(order.Id);
+				var markup = new InlineKeyboardMarkup(keyboard);
+
+				return new MessageKeyboard(markup, "Редактирование заказа", selectItem.ChatId);
 			}
 
 			if (selectItem.Type == IncomeMessageType.Paymented) {
@@ -197,14 +207,14 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 				return new MessageKeyboard(
 					markup,
 					$"Номер вашего заказа - {order.Id}. Мы проверим оплату и приступим к приготовлению\n\n" +
-					"Ваш заказ:\n\n" +
+					"Ваш заказ:\n" +
 					string.Join(
 						";\n",
 						basket.Select(b => {
 							var parameterText = GetParameterText(b.Product.CategoryId);
 							var parameter = b.ProductParameter == null ? string.Empty : $"({parameterText}: {b.ProductParameter.Name})";
 
-							return $"{categories.FirstOrDefault(c => c.Id == b.Product.CategoryId).Name} {b.Product.Name} {parameter}";
+							return $"    - {categories.FirstOrDefault(c => c.Id == b.Product.CategoryId).Name} {b.Product.Name} {parameter}";
 						})
 					) +
 					$"\n\nПриготовим к {order.DateReceiving:HH:mm}",
@@ -222,19 +232,31 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 					? "вкус"
 					: "сироп";
 
-		private static string GetOrderText(IEnumerable<BasketItemDto> basket, IEnumerable<CategoryDto> categories, int totalSum) {
-			return "Ваш заказ:\n\n" +
+		private static string GetOrderText(
+			IEnumerable<BasketItemDto> basket,
+			IEnumerable<CategoryDto> categories,
+			OrderPrice orderPrice,
+			bool? needDelivery
+		) {
+			var totalPriceText = $"К оплате: {orderPrice.TotalPrice} рублей.\n\n" +
+				$"Оплата производится переводом на банковскую карту Сбербанка " +
+				$"по номерам карты 4276-4200-2390-1480 или телефона 8(996)953-73-23";
+			var deleveryPriceText = needDelivery.HasValue && needDelivery.Value
+				? $"Доставка: {orderPrice.DeliveryPrice} рублей\n"
+				: string.Empty;
+			return "Ваш заказ:\n" +
 				string.Join(
 					";\n",
 					basket.Select(b => {
 						var parameterText = GetParameterText(b.Product.CategoryId);
 						var parameter = b.ProductParameter == null ? string.Empty : $"({parameterText}: {b.ProductParameter.Name})";
 
-						return $"{categories.FirstOrDefault(c => c.Id == b.Product.CategoryId).Name} {b.Product.Name}" +
+						return $"    - {categories.FirstOrDefault(c => c.Id == b.Product.CategoryId).Name} {b.Product.Name}" +
 							$" {parameter} - {b.Product.Price + (b.ProductParameter?.Price ?? 0)} рублей";
 					})) +
-					$"\n\nК оплате: {totalSum} рублей.\n\nОплата производится переводом на банковскую карту Сбербанка " +
-					$"по номерам карты 4276-4200-2390-1480 или телефона 8(996)953-73-23";
+					$"\n\nСумма заказа: {orderPrice.Price}\n" +
+					deleveryPriceText +
+					totalPriceText;
 		}
 
 		private async Task<IEnumerable<IEnumerable<InlineKeyboardButton>>> GetCategoriesKeyboard(IEnumerable<CategoryDto> categories, long chatId) {
@@ -269,7 +291,7 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 					: IncomeMessageType.Delivery
 				: IncomeMessageType.ReceivingTime;
 
-			keyboard.Add(CreateButton(new SelectItem { Type = paidButtonMessageType }, "Далее➡️"));
+			keyboard.Add(CreateButton(new SelectItem { Type = paidButtonMessageType }, "Далее ➡️"));
 
 			return keyboard;
 		}
@@ -297,14 +319,40 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 			}
 
 			if (product.CategoryId == 10) {
-				yield return CreateButton(new SelectItem { Type = IncomeMessageType.Basket, ProductId = product.Id }, "Без топинга");
+				yield return CreateButton(new SelectItem { Type = IncomeMessageType.Basket, ProductId = product.Id }, "Без топинга ❌");
 			}
 
 			if (product.CategoryId > 0 && product.CategoryId < 6) {
-				yield return CreateButton(new SelectItem { Type = IncomeMessageType.Basket, ProductId = product.Id }, "Без сиропа");
+				yield return CreateButton(new SelectItem { Type = IncomeMessageType.Basket, ProductId = product.Id }, "Без сиропа ❌");
 			}
 			
 			yield return CreateButton(new SelectItem { Type = IncomeMessageType.Products, CategoryId = product.CategoryId }, _backButtonAlias);
+		}
+
+		private async Task<IEnumerable<IEnumerable<InlineKeyboardButton>>> GetEditKeyboard(int orderId) {
+			var categories = await _mediator.Send(new GetCategories());
+			var basket = await _mediator.Send(new GetBasketByOrderId(orderId));
+			var buttons = new List<IEnumerable<InlineKeyboardButton>>();
+			foreach (var item in basket) {
+				var parameterText = GetParameterText(item.Product.CategoryId);
+				var parameter = item.ProductParameter == null ? string.Empty : $"({parameterText}: {item.ProductParameter.Name})";
+				var categoryAlias = categories.FirstOrDefault(c => c.Id == item.Product.CategoryId).Name;
+
+				buttons.Add(
+					CreateButton(
+						new SelectItem {
+							Type = IncomeMessageType.EditOrder,
+							BasketId = item.Id
+						},
+						"Удалить " + $"{categoryAlias} {item.Product.Name} {parameter} ❌".ToLower()
+					)
+				);
+			}
+
+			buttons.Add(CreateButton(new SelectItem { Type = IncomeMessageType.Categories }, _addButtonAlias));
+			buttons.Add(CreateButton(new SelectItem { Type = IncomeMessageType.Paid }, _backButtonAlias));
+
+			return buttons;
 		}
 
 		private static IEnumerable<IEnumerable<InlineKeyboardButton>> GetPaidKeyboard(int? ordersCount, decimal? discount) {
@@ -322,16 +370,17 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 				}
 			}
 
-			yield return CreateButton(new SelectItem { Type = IncomeMessageType.Paymented, Discount = discount }, "Я оплатил(а)");
-			yield return CreateButton(new SelectItem { Type = IncomeMessageType.CleanBasket }, "Я передумал(а)");
+			yield return CreateButton(new SelectItem { Type = IncomeMessageType.Paymented, Discount = discount }, "Я оплатил(а) ✅");
+			yield return CreateButton(new SelectItem { Type = IncomeMessageType.CleanBasket }, "Я передумал(а) ❌");
+			yield return CreateButton(new SelectItem { Type = IncomeMessageType.EditOrder }, "Редактировать заказ 📦");
 			yield return CreateButton(new SelectItem { Type = IncomeMessageType.Home }, _backButtonAlias);
 		}
 
 		private async Task<IEnumerable<IEnumerable<InlineKeyboardButton>>> GetHomeKeyboard(long chatId, SelectItem selectItem) {
 			var keyboard = new List<IEnumerable<InlineKeyboardButton>> {
-				CreateButton(new SelectItem { Type = IncomeMessageType.Categories }, "Сделать заказ"),
-				CreateButton(new SelectItem { Type = IncomeMessageType.Address }, "Узнать aдрес"),
-				CreateButton(new SelectItem { Type = IncomeMessageType.Contacts }, "Контакты")
+				CreateButton(new SelectItem { Type = IncomeMessageType.Categories }, "Меню 📋"),
+				CreateButton(new SelectItem { Type = IncomeMessageType.Address }, "Узнать aдрес 🌏"),
+				CreateButton(new SelectItem { Type = IncomeMessageType.Contacts }, "Контакты 📙")
 			};
 
 			var client = await _mediator.Send(new GetClientByTelegramChatId(chatId));
@@ -349,7 +398,7 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 				return keyboard;
 			}
 			
-			var totalSum = (int)OrderHelper.GetPrice(basket, selectItem.Discount);
+			var orderPrice = OrderHelper.GetPrice(basket, selectItem.Discount, order.NeedDelivery);
 			var paidButtonMessageType = order.DateReceiving.HasValue
 				? order.NeedDelivery.HasValue
 					? string.IsNullOrWhiteSpace(order.Comment)
@@ -358,8 +407,8 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 					: IncomeMessageType.Delivery
 				: IncomeMessageType.ReceivingTime;
 
-			keyboard.Add(CreateButton(new SelectItem { Type = paidButtonMessageType }, $"Оплатить заказ ({totalSum} рублей)"));
-			keyboard.Add(CreateButton(new SelectItem { Type = IncomeMessageType.CleanBasket, OrderId = order.Id }, "Очистить корзину"));
+			keyboard.Add(CreateButton(new SelectItem { Type = paidButtonMessageType }, $"Оплатить заказ ({orderPrice.TotalPrice} рублей) 💳"));
+			keyboard.Add(CreateButton(new SelectItem { Type = IncomeMessageType.CleanBasket, OrderId = order.Id }, "Очистить корзину ❌"));
 
 			return keyboard;
 		}

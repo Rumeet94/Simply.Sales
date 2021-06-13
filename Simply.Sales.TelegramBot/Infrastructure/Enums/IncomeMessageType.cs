@@ -11,8 +11,9 @@
 		ReceivingTime = 8,
 		Delivery = 9,
 		Comment = 10,
-		Paymented = 11,
-		Address = 12,
-		Contacts = 13
+		EditOrder = 11,
+		Paymented = 12,
+		Address = 13,
+		Contacts = 14
 	}
 }

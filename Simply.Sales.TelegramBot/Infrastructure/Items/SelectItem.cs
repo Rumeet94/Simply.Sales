@@ -4,8 +4,6 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Items {
 	public class SelectItem {
 		public IncomeMessageType Type { get; set; }
 
-		public IncomeMessageType OType { get; set; }
-
 		public int? CategoryId { get; set; }
 
 		public int? ProductId { get; set; }

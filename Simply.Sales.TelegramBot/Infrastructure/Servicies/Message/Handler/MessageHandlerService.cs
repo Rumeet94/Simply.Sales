@@ -151,10 +151,6 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Servicies.Message.Handler {
 
 					await _messageService.DeleteMessage(message.Chat.Id, --message.MessageId);
 					await _messageService.SendKeyboardMessage(buttons);
-					await _messageService.SendTextMessage(
-						_officeChatId,
-						$"Создан заказ №{order.Id}. Ожидается оплата от клиента {client.Name} (@{message.From.Username}, {client.PhoneNumber})."
-					);
 
 					return;
 				}
@@ -220,25 +216,29 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Servicies.Message.Handler {
 
 					var basket = await _mediator.Send(new GetBasketByOrderId(order.Id));
 					var categories = await _mediator.Send(new GetCategories());
-					var totalSum = (int) OrderHelper.GetPrice(basket, selectItem.Discount);
+					var orderPrice = OrderHelper.GetPrice(basket, selectItem.Discount, order.NeedDelivery);
 					var discountText = selectItem.Discount.HasValue
-						? $" , скидка {selectItem.Discount.Value}%"
-						: "";
+						? $"{selectItem.Discount.Value}%"
+						: "без скидки";
 					var deliveryText = order.NeedDelivery.Value
-						? "нужна"
+						? "нужна " + (orderPrice.DeliveryPrice == 0 ? "(бесплатная)" : "(50 рублей)")
 						: "не нужна";
 					var text = $"Клиент {client.Name} (@{callback.From.Username}, {client.PhoneNumber}) " +
-						$"подтвердил(а) оплату заказа №{order.Id}. Проверьте зачисление средств ({totalSum} рублей" +
-						$"{discountText}). \n\n" +
-						$"Время выдачи заказа: {order.DateReceiving.Value:HH:mm} \n\n" +
+						$"подтвердил(а) оплату заказа №{order.Id}.\n\n" +
+						
 						"Заказ: \n" +
 							string.Join("\n", basket.Select(p => {
 								var parameter = p.ProductParameter == null ? string.Empty : $"(сироп: {p.ProductParameter.Name})";
 
-								return $"- {categories.FirstOrDefault(c => c.Id == p.Product.CategoryId).Name} {p.Product.Name} {parameter}";
+								return $"    - {categories.FirstOrDefault(c => c.Id == p.Product.CategoryId).Name} {p.Product.Name} {parameter}";
 							})) +
-						$"\n\nДоставка: {deliveryText}" +
-						$"\n\nКомментарий: {order.Comment}" ;
+
+						$"\n\nCумма заказа: {orderPrice.Price}\n" +
+						$"Скидка: {discountText}\n" +
+						$"Доставка: {deliveryText}\n" +
+						$"Время выдачи заказа: {order.DateReceiving.Value:HH:mm}\n" +
+						$"Комментарий: {order.Comment}\n\n" +
+						$"Проверьте зачисление средств ({orderPrice.TotalPrice}) рублей";
 
 					await _messageService.SendTextMessage(_officeChatId, text);
 				}
@@ -254,9 +254,6 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Servicies.Message.Handler {
 				order.OrderState = OrderStateDto.Paid;
 
 				await _mediator.Send(new UpdateOrder(order));
-				await _messageService.SendTextMessage(
-					_officeChatId,
-					$"Создан заказ №{order.Id}. Ожидается оплата от клиента {client.Name} (@{callback.Message.From.Username}, {client.PhoneNumber}).");
 			}
 
 			if (selectItem.Type == IncomeMessageType.CleanBasket) {
@@ -266,12 +263,6 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Servicies.Message.Handler {
 				order.IsCanceled = true;
 
 				await _mediator.Send(new UpdateOrder(order));
-
-				if (order.OrderState == OrderStateDto.Paid) {
-					await _messageService.SendTextMessage(
-						_officeChatId,
-						$"Клиент {client.Name} (@{callback.From.Username}, {client.PhoneNumber}) отменил заказ №{order.Id}.");
-				}
 			}
 
 			if (selectItem.Type == IncomeMessageType.ReceivingTime) {
@@ -298,6 +289,10 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Servicies.Message.Handler {
 				order.NeedDelivery = selectItem.NeedDelivery;
 
 				await _mediator.Send(new UpdateOrder(order));
+			}
+
+			if (selectItem.Type == IncomeMessageType.EditOrder && selectItem.BasketId.HasValue) {
+				await _mediator.Send(new DeleteBasketItem(selectItem.BasketId.Value));
 			}
 
 			selectItem.ChatId = callback.Message.Chat.Id;
