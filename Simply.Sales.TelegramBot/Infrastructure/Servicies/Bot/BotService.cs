@@ -8,6 +8,7 @@ using Simply.Sales.TelegramBot.Infrastructure.Servicies.Message.Handler;
 
 using Telegram.Bot;
 using Telegram.Bot.Args;
+using Telegram.Bot.Types.Enums;
 
 namespace Simply.Sales.TelegramBot.Infrastructure.Servicies.Bot {
 	public class BotService : IBotService {
@@ -41,6 +42,7 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Servicies.Bot {
 			await _botClient.SetWebhookAsync("");
 			_botClient.OnMessage += BotOnMessage;
 			_botClient.OnCallbackQuery += BotOnCallback;
+			_botClient.OnUpdate += BotOnUpdate;
 			_botClient.StartReceiving();
 		}
 
@@ -59,6 +61,15 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Servicies.Bot {
 			}
 			catch(Exception e) {
 				_logger.LogError($"Error on client {eventCallback.CallbackQuery.Message.Chat.Id}. {e.Message}");
+			}
+		}
+
+		public async void BotOnUpdate(object sender,UpdateEventArgs e) {
+			switch (e.Update.Type) {
+				case UpdateType.PreCheckoutQuery:
+					await _botClient.AnswerPreCheckoutQueryAsync(e.Update.PreCheckoutQuery.Id);
+
+					break;
 			}
 		}
 	}

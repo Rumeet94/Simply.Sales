@@ -1,23 +1,58 @@
 ﻿using Simply.Sales.TelegramBot.Infrastructure.Enums;
 
 namespace Simply.Sales.TelegramBot.Infrastructure.Items {
+	/// <summary>
+	/// Query кнопки. Названия свойств сокращены из-за ограничения размера query у кнопок телеграмма
+	/// </summary>
 	public class SelectItem {
-		public IncomeMessageType Type { get; set; }
+		/// <summary>
+		/// Тип будущего действия
+		/// </summary>
+		public IncomeMessageType T { get; set; }
 
-		public int? CategoryId { get; set; }
+		/// <summary>
+		/// Категория продуктов
+		/// </summary>
+		public int? CId { get; set; }
 
-		public int? ProductId { get; set; }
+		/// <summary>
+		/// Id продукта
+		/// </summary>
+		public int? PId { get; set; }
 
-		public int? ProductParameterId { get; set; }
+		/// <summary>
+		/// Id параметра продукта
+		/// </summary>
+		public int? PPId { get; set; }
 
-		public int? BasketId { get; set; }
+		/// <summary>
+		/// Id корзины
+		/// </summary>
+		public int? BId { get; set; }
 
-		public int? OrderId { get; set; }
+		/// <summary>
+		/// Id заказа
+		/// </summary>
+		public int? OId { get; set; }
 
-		public long ChatId { get; set; }
+		/// <summary>
+		/// Id пользователя в телеграмме (ChatId)
+		/// </summary>
+		public long CI { get; set; }
 
-		public decimal? Discount { get; set; }
+		/// <summary>
+		/// Скидка
+		/// </summary>
+		public decimal? D { get; set; }
 
-		public bool? NeedDelivery { get; set; }
+		/// <summary>
+		/// Флаг доставки
+		/// </summary>
+		public bool? ND { get; set; }
+
+		/// <summary>
+		/// Цена
+		/// </summary>
+		public OrderPrice P { get; set; }
 	}
 }

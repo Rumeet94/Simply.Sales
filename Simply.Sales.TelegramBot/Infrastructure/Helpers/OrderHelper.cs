@@ -14,9 +14,8 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Helpers {
 			}
 
 			var markdown = Math.Round(price * (discount.Value / 100m), 2, MidpointRounding.ToEven);
-			var discountedPrice = price - markdown;
 
-			return new OrderPrice(price, needDelivery, discountedPrice);
+			return new OrderPrice(price, needDelivery, markdown);
 		}
 	}
 }
