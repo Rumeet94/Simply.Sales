@@ -345,6 +345,12 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Servicies.Message.Handler {
 				await _messageService.SendKeyboardMessage(keyboard);
 			}
 			catch {
+				try {
+					await _messageService.DeleteMessage(callback.Message.Chat.Id, callback.Message.MessageId);
+				}
+				catch {
+				}
+
 				var keyboard = await _messageFactory.CreateKeyboard(
 					new SelectItem { Type = IncomeMessageType.Home, ChatId = callback.Message.Chat.Id }
 				);
