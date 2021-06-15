@@ -64,107 +64,114 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Servicies.Message.Handler {
 				return;
 			}
 
-			var client = await _mediator.Send(new GetClientByTelegramChatId(message.Chat.Id));
-			if (client == null) {
-				await _clientService.Registration(message.Chat.Id, message.From.FirstName);
+			try {
+				var client = await _mediator.Send(new GetClientByTelegramChatId(message.Chat.Id));
+				if (client == null) {
+					await _clientService.Registration(message.Chat.Id, message.From.FirstName);
 
-				var text = string.IsNullOrWhiteSpace(message.From.FirstName)
-					? "Давайте знакомиться. Как Вас зовут?"
-					: $"{message.From.FirstName}, укажите пожалуйста, Ваш контактный номер телефона," +
-						$" чтобы мы могли связаться с Вами в случае появления каких-либо вопросов.";
+					var text = string.IsNullOrWhiteSpace(message.From.FirstName)
+						? "Давайте знакомиться. Как Вас зовут?"
+						: $"{message.From.FirstName}, укажите пожалуйста, Ваш контактный номер телефона," +
+							$" чтобы мы могли связаться с Вами в случае появления каких-либо вопросов.";
 
-				await _messageService.SendTextMessage(message.Chat.Id, text);
-
-				return;
-			}
-
-			if (string.IsNullOrWhiteSpace(client.Name)) {
-				client.Name = message.Text;
-
-				await _mediator.Send(new UpdateTelegramClient(client));
-				await _messageService.SendTextMessage(
-					message.Chat.Id,
-					$"{message.From.FirstName}, укажите пожалуйста, Ваш контактный номер телефона, " +
-						$" чтобы мы могли связаться с Вами в случае появления каких-либо вопросов."
-				);
-
-				return;
-			}
-
-			if (string.IsNullOrWhiteSpace(client.PhoneNumber)) {
-				if (!message.Text.ValidatePhoneNumber(true)) {
-					await _messageService.SendTextMessage(message.Chat.Id, "Укажите корректный номер телефона.");
+					await _messageService.SendTextMessage(message.Chat.Id, text);
 
 					return;
 				}
 
-				client.PhoneNumber = message.Text;
+				if (string.IsNullOrWhiteSpace(client.Name)) {
+					client.Name = message.Text;
 
-				await _mediator.Send(new UpdateTelegramClient(client));
-			}
+					await _mediator.Send(new UpdateTelegramClient(client));
+					await _messageService.SendTextMessage(
+						message.Chat.Id,
+						$"{message.From.FirstName}, укажите пожалуйста, Ваш контактный номер телефона, " +
+							$" чтобы мы могли связаться с Вами в случае появления каких-либо вопросов."
+					);
 
-			var order = client.Orders?.FirstOrDefault(o => !o.DateCompleted.HasValue);
-			if (order != null && order.OrderState == OrderStateDto.Parameters) {
-				if (!order.DateReceiving.HasValue) {
-					var stringTime = message.Text.Replace(".", ":");
-					var orderDateTime = _workTimeProvider.GetDateTimeInWorkPeriod(stringTime);
-					if (orderDateTime.HasValue) {
-						order.DateReceiving = orderDateTime.Value;
+					return;
+				}
+
+				if (string.IsNullOrWhiteSpace(client.PhoneNumber)) {
+					if (!message.Text.ValidatePhoneNumber(true)) {
+						await _messageService.SendTextMessage(message.Chat.Id, "Укажите корректный номер телефона.");
+
+						return;
+					}
+
+					client.PhoneNumber = message.Text;
+
+					await _mediator.Send(new UpdateTelegramClient(client));
+				}
+
+				var order = client.Orders?.FirstOrDefault(o => !o.DateCompleted.HasValue);
+				if (order != null && order.OrderState == OrderStateDto.Parameters) {
+					if (!order.DateReceiving.HasValue) {
+						var stringTime = message.Text.Replace(".", ":");
+						var orderDateTime = _workTimeProvider.GetDateTimeInWorkPeriod(stringTime);
+						if (orderDateTime.HasValue) {
+							order.DateReceiving = orderDateTime.Value;
+
+							await _mediator.Send(new UpdateOrder(order));
+
+							var buttons = await _messageFactory.CreateKeyboard(
+								new SelectItem {
+									Type = IncomeMessageType.Delivery,
+									ChatId = message.Chat.Id
+								}
+							);
+
+							await _messageService.DeleteMessage(message.Chat.Id, --message.MessageId);
+							await _messageService.SendKeyboardMessage(buttons);
+
+							return;
+						}
+
+						await _messageService.DeleteMessage(message.Chat.Id, --message.MessageId);
+						await _messageService.SendTextMessage(
+							client.ChatId,
+							"Укажите корректное время. Формат чч:mm. Пример: 17:00" +
+								$"Заказы принимаются с { _workTimeProvider.StartWorkTime.ToString(_workTimeFormat)} " +
+								$"до { _workTimeProvider.EndWorkTime.ToString(_workTimeFormat)}");
+
+						return;
+					}
+
+					if (order != null && order.NeedDelivery.HasValue) {
+						order.Comment = message.Text;
+						order.OrderState = OrderStateDto.Paid;
 
 						await _mediator.Send(new UpdateOrder(order));
 
 						var buttons = await _messageFactory.CreateKeyboard(
-							new SelectItem {
-								Type = IncomeMessageType.Delivery,
-								ChatId = message.Chat.Id
-							}
-						);
+								new SelectItem {
+									Type = IncomeMessageType.Paid,
+									ChatId = message.Chat.Id
+								}
+							);
 
 						await _messageService.DeleteMessage(message.Chat.Id, --message.MessageId);
 						await _messageService.SendKeyboardMessage(buttons);
 
 						return;
 					}
-
-					await _messageService.DeleteMessage(message.Chat.Id, --message.MessageId);
-					await _messageService.SendTextMessage(
-						client.ChatId,
-						"Укажите корректное время. Формат чч:mm. Пример: 17:00" +
-							$"Заказы принимаются с { _workTimeProvider.StartWorkTime.ToString(_workTimeFormat)} " +
-							$"до { _workTimeProvider.EndWorkTime.ToString(_workTimeFormat)}");
-
-					return;
 				}
 
-				if (order != null && order.NeedDelivery.HasValue) {
-					order.Comment = message.Text;
-					order.OrderState = OrderStateDto.Paid;
+				var keyboard = await _messageFactory.CreateKeyboard(new SelectItem { Type = IncomeMessageType.Home, ChatId = message.Chat.Id });
 
-					await _mediator.Send(new UpdateOrder(order));
-
-					var buttons = await _messageFactory.CreateKeyboard(
-							new SelectItem {
-								Type = IncomeMessageType.Paid,
-								ChatId = message.Chat.Id
-							}
-						);
-
+				try {
 					await _messageService.DeleteMessage(message.Chat.Id, --message.MessageId);
-					await _messageService.SendKeyboardMessage(buttons);
-
-					return;
 				}
-			}
+				catch {
+				}
 
-			var keyboard = await _messageFactory.CreateKeyboard(new SelectItem { Type = IncomeMessageType.Home, ChatId = message.Chat.Id });
-
-			try {
-				await _messageService.DeleteMessage(message.Chat.Id, --message.MessageId);
+				await _messageService.SendKeyboardMessage(keyboard);
 			}
 			catch {
-			}
+				var keyboard = await _messageFactory.CreateKeyboard(new SelectItem { Type = IncomeMessageType.Home, ChatId = message.Chat.Id });
 
-			await _messageService.SendKeyboardMessage(keyboard);
+				await _messageService.SendKeyboardMessage(keyboard);
+			}
 		}
 
 		public async Task HandleKeyboard(CallbackQuery callback) {
@@ -172,165 +179,174 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Servicies.Message.Handler {
 				return;
 			}
 
-			var client = await _mediator.Send(new GetClientByTelegramChatId(callback.Message.Chat.Id));
-			if (client == null) {
-				await HandleText(callback.Message);
-			}
+			try {
+				var client = await _mediator.Send(new GetClientByTelegramChatId(callback.Message.Chat.Id));
+				if (client == null) {
+					await HandleText(callback.Message);
+				}
 
-			var selectItem = JsonSerializer.Deserialize<SelectItem>(callback.Data);
-			if (selectItem.Type == IncomeMessageType.Basket) {
-				var order = client?.Orders?.FirstOrDefault(o => !o.DateCompleted.HasValue);
+				var selectItem = JsonSerializer.Deserialize<SelectItem>(callback.Data);
+				if (selectItem.Type == IncomeMessageType.Basket) {
+					var order = client?.Orders?.FirstOrDefault(o => !o.DateCompleted.HasValue);
 
-				if (order == null) {
-					order = new OrderDto {
-						DateCreated = DateTime.Now,
-						ClientId = client.Id,
-						OrderState = OrderStateDto.Created
+					if (order == null) {
+						order = new OrderDto {
+							DateCreated = DateTime.Now,
+							ClientId = client.Id,
+							OrderState = OrderStateDto.Created
+						};
+
+						order.Id = await _mediator.Send(new AddOrder(order));
+					}
+
+					var productParameter = selectItem.ProductParameterId.HasValue
+							? await _mediator.Send(new GetProductParameter(selectItem.ProductParameterId.Value))
+							: null;
+					var basketItem = new BasketItemDto {
+						ProductId = selectItem.ProductId.HasValue
+							? selectItem.ProductId.Value
+							: productParameter.ProductId,
+						OrderId = order.Id,
+						ProductParameterId = productParameter?.Id
 					};
 
-					order.Id = await _mediator.Send(new AddOrder(order));
+					await _mediator.Send(new AddBasketItem(basketItem));
 				}
 
-				var productParameter = selectItem.ProductParameterId.HasValue
-						? await _mediator.Send(new GetProductParameter(selectItem.ProductParameterId.Value))
-						: null;
-				var basketItem = new BasketItemDto {
-					ProductId = selectItem.ProductId.HasValue
-						? selectItem.ProductId.Value
-						: productParameter.ProductId,
-					OrderId = order.Id,
-					ProductParameterId = productParameter?.Id
-				};
+				if (selectItem.Type == IncomeMessageType.Paymented) {
+					var order = client.Orders?.FirstOrDefault(o => !o.DateCompleted.HasValue);
 
-				await _mediator.Send(new AddBasketItem(basketItem));
-			}
+					if (order != null && order.OrderState != OrderStateDto.Paymented) {
+						order.OrderState = OrderStateDto.Paymented;
+						order.DateCompleted = DateTime.Now;
 
-			if (selectItem.Type == IncomeMessageType.Paymented) {
-				var order = client.Orders?.FirstOrDefault(o => !o.DateCompleted.HasValue);
+						await _mediator.Send(new UpdateOrder(order));
 
-				if (order != null && order.OrderState != OrderStateDto.Paymented) {
-					order.OrderState = OrderStateDto.Paymented;
-					order.DateCompleted = DateTime.Now;
+						var basket = await _mediator.Send(new GetBasketByOrderId(order.Id));
+						var categories = await _mediator.Send(new GetCategories());
+						var orderPrice = OrderHelper.GetPrice(basket, selectItem.Discount, order.NeedDelivery);
+						var discountText = selectItem.Discount.HasValue
+							? $"{selectItem.Discount.Value}%"
+							: "без скидки";
+						var deliveryText = order.NeedDelivery.Value
+							? "нужна " + (orderPrice.DeliveryPrice == 0 ? "(бесплатная)" : "(50 рублей)")
+							: "не нужна";
+						var text = $"Клиент {client.Name} (@{callback.From.Username}, {client.PhoneNumber}) " +
+							$"подтвердил(а) оплату заказа №{order.Id}.\n\n" +
+
+							"Заказ: \n" +
+								string.Join("\n", basket.Select(p => {
+									var parameter = p.ProductParameter == null ? string.Empty : $"(сироп: {p.ProductParameter.Name})";
+
+									return $"    - {categories.FirstOrDefault(c => c.Id == p.Product.CategoryId).Name} {p.Product.Name} {parameter}";
+								})) +
+
+							$"\n\nCумма заказа: {orderPrice.Price}\n" +
+							$"Скидка: {discountText}\n" +
+							$"Доставка: {deliveryText}\n" +
+							$"Время выдачи заказа: {order.DateReceiving.Value:HH:mm}\n" +
+							$"Комментарий: {order.Comment}\n\n" +
+							$"Проверьте зачисление средств ({orderPrice.TotalPrice}) рублей";
+
+						await _messageService.SendTextMessage(_officeChatId, text);
+					}
+				}
+
+				if (selectItem.Type == IncomeMessageType.Paid) {
+					var order = client.Orders?.FirstOrDefault(o => !o.DateCompleted.HasValue);
+
+					if (string.IsNullOrWhiteSpace(order.Comment)) {
+						order.Comment = "без коментария";
+					}
+
+					order.OrderState = OrderStateDto.Paid;
 
 					await _mediator.Send(new UpdateOrder(order));
-
-					var basket = await _mediator.Send(new GetBasketByOrderId(order.Id));
-					var categories = await _mediator.Send(new GetCategories());
-					var orderPrice = OrderHelper.GetPrice(basket, selectItem.Discount, order.NeedDelivery);
-					var discountText = selectItem.Discount.HasValue
-						? $"{selectItem.Discount.Value}%"
-						: "без скидки";
-					var deliveryText = order.NeedDelivery.Value
-						? "нужна " + (orderPrice.DeliveryPrice == 0 ? "(бесплатная)" : "(50 рублей)")
-						: "не нужна";
-					var text = $"Клиент {client.Name} (@{callback.From.Username}, {client.PhoneNumber}) " +
-						$"подтвердил(а) оплату заказа №{order.Id}.\n\n" +
-						
-						"Заказ: \n" +
-							string.Join("\n", basket.Select(p => {
-								var parameter = p.ProductParameter == null ? string.Empty : $"(сироп: {p.ProductParameter.Name})";
-
-								return $"    - {categories.FirstOrDefault(c => c.Id == p.Product.CategoryId).Name} {p.Product.Name} {parameter}";
-							})) +
-
-						$"\n\nCумма заказа: {orderPrice.Price}\n" +
-						$"Скидка: {discountText}\n" +
-						$"Доставка: {deliveryText}\n" +
-						$"Время выдачи заказа: {order.DateReceiving.Value:HH:mm}\n" +
-						$"Комментарий: {order.Comment}\n\n" +
-						$"Проверьте зачисление средств ({orderPrice.TotalPrice}) рублей";
-
-					await _messageService.SendTextMessage(_officeChatId, text);
-				}
-			}
-
-			if (selectItem.Type == IncomeMessageType.Paid) {
-				var order = client.Orders?.FirstOrDefault(o => !o.DateCompleted.HasValue);
-
-				if (string.IsNullOrWhiteSpace(order.Comment)) {
-					order.Comment = "без коментария";
 				}
 
-				order.OrderState = OrderStateDto.Paid;
+				if (selectItem.Type == IncomeMessageType.CleanBasket) {
+					var order = client.Orders?.FirstOrDefault(o => !o.DateCompleted.HasValue);
 
-				await _mediator.Send(new UpdateOrder(order));
-			}
+					order.DateCompleted = DateTime.Now;
+					order.IsCanceled = true;
 
-			if (selectItem.Type == IncomeMessageType.CleanBasket) {
-				var order = client.Orders?.FirstOrDefault(o => !o.DateCompleted.HasValue);
+					await _mediator.Send(new UpdateOrder(order));
+				}
 
-				order.DateCompleted = DateTime.Now;
-				order.IsCanceled = true;
+				if (selectItem.Type == IncomeMessageType.ReceivingTime) {
+					var order = client.Orders?.FirstOrDefault(o => !o.DateCompleted.HasValue);
 
-				await _mediator.Send(new UpdateOrder(order));
-			}
+					order.NeedDelivery = null;
+					order.DateReceiving = null;
+					order.OrderState = OrderStateDto.Parameters;
 
-			if (selectItem.Type == IncomeMessageType.ReceivingTime) {
-				var order = client.Orders?.FirstOrDefault(o => !o.DateCompleted.HasValue);
+					await _mediator.Send(new UpdateOrder(order));
+				}
 
-				order.NeedDelivery = null;
-				order.DateReceiving = null;
-				order.OrderState = OrderStateDto.Parameters;
+				if (selectItem.Type == IncomeMessageType.Delivery) {
+					var order = client.Orders?.FirstOrDefault(o => !o.DateCompleted.HasValue);
 
-				await _mediator.Send(new UpdateOrder(order));
-			}
+					order.Comment = null;
 
-			if (selectItem.Type == IncomeMessageType.Delivery) {
-				var order = client.Orders?.FirstOrDefault(o => !o.DateCompleted.HasValue);
+					await _mediator.Send(new UpdateOrder(order));
+				}
 
-				order.Comment = null;
+				if (selectItem.Type == IncomeMessageType.Comment) {
+					var order = client.Orders?.FirstOrDefault(o => !o.DateCompleted.HasValue);
 
-				await _mediator.Send(new UpdateOrder(order));
-			}
+					order.NeedDelivery = selectItem.NeedDelivery;
 
-			if (selectItem.Type == IncomeMessageType.Comment) {
-				var order = client.Orders?.FirstOrDefault(o => !o.DateCompleted.HasValue);
+					await _mediator.Send(new UpdateOrder(order));
+				}
 
-				order.NeedDelivery = selectItem.NeedDelivery;
+				if (selectItem.Type == IncomeMessageType.EditOrder && selectItem.BasketId.HasValue) {
+					await _mediator.Send(new DeleteBasketItem(selectItem.BasketId.Value));
+				}
 
-				await _mediator.Send(new UpdateOrder(order));
-			}
+				selectItem.ChatId = callback.Message.Chat.Id;
 
-			if (selectItem.Type == IncomeMessageType.EditOrder && selectItem.BasketId.HasValue) {
-				await _mediator.Send(new DeleteBasketItem(selectItem.BasketId.Value));
-			}
+				var keyboard = await _messageFactory.CreateKeyboard(selectItem);
 
-			selectItem.ChatId = callback.Message.Chat.Id;
+				try {
+					await _messageService.DeleteMessage(callback.Message.Chat.Id, callback.Message.MessageId);
+				}
+				catch (Exception e) {
 
-			var keyboard = await _messageFactory.CreateKeyboard(selectItem);
+				}
 
-			try {
-				await _messageService.DeleteMessage(callback.Message.Chat.Id, callback.Message.MessageId);
-			}
-			catch (Exception e) {
-				
-			}
-
-			if (selectItem.Type == IncomeMessageType.Address) {
-				await _messageService.SendVenueMessage(
-					callback.Message.Chat.Id,
-					54.30847440136837f,
-					48.38771581649781f,
-					keyboard.Markup,
-					"Кофейня RAF Coffee",
-					"улица Минаева, д. 11, ТРК Спартак"
-				);
-
-				return;
-			}
-
-			try {
-				if (selectItem.Type == IncomeMessageType.Products) {
-					await _messageService.SendImageMessage(keyboard as ImageKeyboard);
+				if (selectItem.Type == IncomeMessageType.Address) {
+					await _messageService.SendVenueMessage(
+						callback.Message.Chat.Id,
+						54.30847440136837f,
+						48.38771581649781f,
+						keyboard.Markup,
+						"Кофейня RAF Coffee",
+						"улица Минаева, д. 11, ТРК Спартак"
+					);
 
 					return;
 				}
-			}
-			catch {
+
+				try {
+					if (selectItem.Type == IncomeMessageType.Products) {
+						await _messageService.SendImageMessage(keyboard as ImageKeyboard);
+
+						return;
+					}
+				}
+				catch {
+					await _messageService.SendKeyboardMessage(keyboard);
+				}
+
 				await _messageService.SendKeyboardMessage(keyboard);
 			}
+			catch {
+				var keyboard = await _messageFactory.CreateKeyboard(
+					new SelectItem { Type = IncomeMessageType.Home, ChatId = callback.Message.Chat.Id }
+				);
 
-			await _messageService.SendKeyboardMessage(keyboard);
+				await _messageService.SendKeyboardMessage(keyboard);
+			}
 		}
 	}
 }
