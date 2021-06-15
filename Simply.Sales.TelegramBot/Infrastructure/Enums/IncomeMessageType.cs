@@ -12,8 +12,9 @@
 		Delivery = 9,
 		Comment = 10,
 		EditOrder = 11,
-		Paymented = 12,
-		Address = 13,
-		Contacts = 14
+		PaymentOperation = 12,
+		Paymented = 13,
+		Address = 14,
+		Contacts = 15
 	}
 }
