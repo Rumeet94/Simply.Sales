@@ -80,8 +80,8 @@ namespace Simply.Sales.TelegramBot {
 			services.AddMediatR(typeof(Startup));
 			services.AddAutoMapper(c => c.AddProfile<AutoMappingConfiguration>(), typeof(Startup));
 
-			//services.AddSingleton<ITelegramBotClient, TelegramBotClient>(c => new TelegramBotClient("1230930238:AAEr1KEt6DETGro4lDPB0G9qgPwuqLxA9Mw"));
-			services.AddSingleton<ITelegramBotClient, TelegramBotClient>(c => new TelegramBotClient("1713565257:AAFnwdptJQaJJciyOz8Ys6lrtkZrBiwmPzE"));
+			services.AddSingleton<ITelegramBotClient, TelegramBotClient>(c => new TelegramBotClient("1230930238:AAEr1KEt6DETGro4lDPB0G9qgPwuqLxA9Mw"));
+			//services.AddSingleton<ITelegramBotClient, TelegramBotClient>(c => new TelegramBotClient("1713565257:AAFnwdptJQaJJciyOz8Ys6lrtkZrBiwmPzE"));
 			services.AddSingleton<IWorkTimeProvider, WorkTimeProvider>();
 
 			AddCommandHandlers(services);
