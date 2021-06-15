@@ -186,6 +186,10 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Servicies.Message.Handler {
 				}
 
 				var selectItem = JsonSerializer.Deserialize<SelectItem>(callback.Data);
+				if (selectItem.Type == IncomeMessageType.NotSpecified) {
+					throw new Exception("Ошибка при десериализации");
+				}
+
 				if (selectItem.Type == IncomeMessageType.Basket) {
 					var order = client?.Orders?.FirstOrDefault(o => !o.DateCompleted.HasValue);
 
