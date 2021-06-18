@@ -130,7 +130,7 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Servicies.Message.Handler {
 						await _messageService.DeleteMessage(message.Chat.Id, --message.MessageId);
 						await _messageService.SendTextMessage(
 							client.ChatId,
-							"Укажите корректное время. Формат чч:mm. Пример: 17:00" +
+							"Укажите корректное время. Формат чч:мм. Пример: 17:00\n" +
 								$"Заказы принимаются с { _workTimeProvider.StartWorkTime.ToString(_workTimeFormat)} " +
 								$"до { _workTimeProvider.EndWorkTime.ToString(_workTimeFormat)}");
 
