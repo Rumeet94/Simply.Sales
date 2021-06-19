@@ -237,7 +237,7 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 			OrderPrice orderPrice,
 			bool? needDelivery
 		) {
-			var totalPriceText = $"К оплате: {orderPrice.GetTotalPrice()} рублей.";
+			var totalPriceText = $"К оплате: {orderPrice.GetTotalPrice()} рублей";
 			var deleveryPriceText = needDelivery.HasValue && needDelivery.Value
 				? $"Доставка: {orderPrice.DP} рублей\n"
 				: string.Empty;
@@ -251,7 +251,7 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 						return $"    - {categories.FirstOrDefault(c => c.Id == b.Product.CategoryId).Name} {b.Product.Name}" +
 							$" {parameter} - {b.Product.Price + (b.ProductParameter?.Price ?? 0)} рублей";
 					})) +
-					$"\n\nСумма заказа: {orderPrice.P}\n" +
+					$"\n\nСумма заказа: {orderPrice.P} рублей\n" +
 					deleveryPriceText +
 					totalPriceText;
 		}
@@ -312,7 +312,10 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Factories.Messages {
 			ProductDto product
 		) {
 			foreach (var item in parameters) {
-				yield return CreateButton(new SelectItem { T = IncomeMessageType.Basket, PPId = item.Id }, $"{item.Name}");
+				yield return CreateButton(
+					new SelectItem { T = IncomeMessageType.Basket, PPId = item.Id },
+					$"{item.Name}" + (item.Price == 0 ? string.Empty : $" (+{(int)item.Price} рублей)")
+				);
 			}
 
 			if (product.CategoryId == 10) {

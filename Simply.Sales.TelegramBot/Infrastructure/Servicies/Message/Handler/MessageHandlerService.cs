@@ -193,6 +193,10 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Servicies.Message.Handler {
 				}
 
 				var selectItem = JsonSerializer.Deserialize<SelectItem>(callback.Data);
+				if (selectItem.T == IncomeMessageType.NotSpecified) {
+					throw new Exception("Ошибка при десериализации");
+				}
+
 				if (selectItem.T == IncomeMessageType.Basket) {
 					var order = client?.Orders?.FirstOrDefault(o => !o.DateCompleted.HasValue);
 
@@ -311,6 +315,8 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Servicies.Message.Handler {
 				await _messageService.SendKeyboardMessage(keyboard);
 			}
 			catch {
+				await DeleteOldMessage(callback.Message.Chat.Id, callback.Message.MessageId);
+
 				var keyboard = await _messageFactory.CreateKeyboard(new SelectItem { T = IncomeMessageType.Home, CI = callback.Message.Chat.Id });
 
 				await _messageService.SendKeyboardMessage(keyboard);
@@ -324,7 +330,7 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Servicies.Message.Handler {
 			//	? $"{selectItem.D.Value}%"
 			//	: "без скидки";
 			var deliveryText = order.NeedDelivery.Value ? "нужна" : "не нужна";
-			var text = $"Клиент {client.Name} (@{message.From.Username}, {client.PhoneNumber})\n " +
+			var text = $"Клиент: {client.Name} (@{message.From.Username}, {client.PhoneNumber})\n " +
 				$"Заказ №{order.Id}: \n" +
 					string.Join("\n", basket.Select(p => {
 						var parameter = p.ProductParameter == null ? string.Empty : $"(сироп: {p.ProductParameter.Name})";
@@ -336,8 +342,7 @@ namespace Simply.Sales.TelegramBot.Infrastructure.Servicies.Message.Handler {
 				//$"Скидка: {discountText}\n" +
 				$"Доставка: {deliveryText}\n" +
 				$"Время выдачи заказа: {order.DateReceiving.Value:HH:mm}\n" +
-				$"Комментарий: {order.Comment}\n\n" +
-				$"Номер транзакции: ({message.SuccessfulPayment.ProviderPaymentChargeId})";
+				$"Комментарий: {order.Comment}";
 
 			await _messageService.SendTextMessage(_officeChatId, text);
 		}
