@@ -15,21 +15,18 @@ namespace Simply.Sales.BLL.Providers {
 
 		public TimeSpan EndWorkTime => new (20, 0, 0);
 
-		public bool IsWorking() {
-			var utc = DateTime.UtcNow;
-			var timeZone = TimeZoneInfo.FindSystemTimeZoneById("Samara Standard Time");
-			var currentDate = TimeZoneInfo.ConvertTime(utc, timeZone);
+		public bool IsWorking(DateTime date) {
+			var currentDate = TimeZoneInfo.ConvertTime(date, _timeZone);
 			var nowDateTime = currentDate.Date;
 
 			return currentDate.IsBetween(nowDateTime.Add(StartWorkTime), nowDateTime.Add(EndWorkTime));
 		}
 
-		public DateTime? GetDateTimeInWorkPeriod(string time) {
+		public DateTime? GetDateTimeInWorkPeriod(TimeSpan time) {
 			try {
-				var timeSpan = TimeSpan.Parse(time);
 				var utc = DateTime.UtcNow;
 				var currentDate = TimeZoneInfo.ConvertTime(utc, _timeZone);
-				var nowDateTime = currentDate.Date.Add(timeSpan);
+				var nowDateTime = currentDate.Date.Add(time);
 
 				return nowDateTime.IsBetween(currentDate.Date.Add(StartWorkTime), currentDate.Date.Add(EndWorkTime))
 					? nowDateTime

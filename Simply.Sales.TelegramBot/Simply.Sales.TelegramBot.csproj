@@ -11,6 +11,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="ctempinternal-nlog-AspNetCore.txt" />
+    <None Remove="Simply.Sales.TelegramBot.csproj~RF379ffe4b.TMP~RF37a3d7b4.TMP" />
     <None Remove="sqlitedemo.db" />
     <None Remove="sqlitedemo.db-shm" />
     <None Remove="sqlitedemo.db-wal" />

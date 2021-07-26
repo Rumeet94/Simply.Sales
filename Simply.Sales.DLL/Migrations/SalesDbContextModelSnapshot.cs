@@ -16,32 +16,7 @@ namespace Simply.Sales.DLL.Migrations
             modelBuilder
                 .HasAnnotation("ProductVersion", "5.0.5");
 
-            modelBuilder.Entity("Simply.Sales.DLL.Models.Clients.ClientAction", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("ActionType")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("ClientId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime?>("DateCompleted")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("DateCreated")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ClientId");
-
-                    b.ToTable("ClientActions");
-                });
-
-            modelBuilder.Entity("Simply.Sales.DLL.Models.Clients.TelegramClient", b =>
+            modelBuilder.Entity("Simply.Sales.DLL.Models.Clients.Client", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -64,43 +39,28 @@ namespace Simply.Sales.DLL.Migrations
                     b.ToTable("Clients");
                 });
 
-            modelBuilder.Entity("Simply.Sales.DLL.Models.Sales.BasketItem", b =>
+            modelBuilder.Entity("Simply.Sales.DLL.Models.Clients.ClientToDeliveryZone", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
+                    b.Property<int>("ClientId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("OrderId")
+                    b.Property<int>("DeliveryZoneId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("ProductId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int?>("ProductParameterId")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("OrderId");
-
-                    b.HasIndex("ProductId");
-
-                    b.HasIndex("ProductParameterId");
-
-                    b.ToTable("Baskets");
-                });
-
-            modelBuilder.Entity("Simply.Sales.DLL.Models.Sales.Category", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("ImageUrl")
-                        .IsRequired()
+                    b.Property<string>("Discription")
                         .HasColumnType("TEXT");
 
-                    b.Property<bool>("IsVisible")
+                    b.HasKey("ClientId", "DeliveryZoneId");
+
+                    b.HasIndex("DeliveryZoneId");
+
+                    b.ToTable("ClientsToDeliveryZones");
+                });
+
+            modelBuilder.Entity("Simply.Sales.DLL.Models.Delivery.DeliveryCity", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Name")
@@ -109,10 +69,59 @@ namespace Simply.Sales.DLL.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Categories");
+                    b.ToTable("DeliveryCities");
                 });
 
-            modelBuilder.Entity("Simply.Sales.DLL.Models.Sales.Order", b =>
+            modelBuilder.Entity("Simply.Sales.DLL.Models.Delivery.DeliveryZone", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CityId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Discription")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("MinPriceForFreeDelivery")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("Price")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CityId");
+
+                    b.ToTable("DeliveryZones");
+                });
+
+            modelBuilder.Entity("Simply.Sales.DLL.Models.Orders.BasketItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Data")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("OrderId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderId");
+
+                    b.ToTable("Baskets");
+                });
+
+            modelBuilder.Entity("Simply.Sales.DLL.Models.Orders.Order", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -133,189 +142,101 @@ namespace Simply.Sales.DLL.Migrations
                     b.Property<DateTime?>("DateReceiving")
                         .HasColumnType("TEXT");
 
-                    b.Property<bool>("IsCanceled")
+                    b.Property<int?>("DeliveryZoneId")
                         .HasColumnType("INTEGER");
 
                     b.Property<bool?>("NeedDelivery")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("OrderState")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ClientId");
 
+                    b.HasIndex("DeliveryZoneId");
+
                     b.ToTable("Orders");
                 });
 
-            modelBuilder.Entity("Simply.Sales.DLL.Models.Sales.Product", b =>
+            modelBuilder.Entity("Simply.Sales.DLL.Models.Clients.ClientToDeliveryZone", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("CategoryId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<bool>("IsVisible")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal>("Price")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CategoryId");
-
-                    b.ToTable("Products");
-                });
-
-            modelBuilder.Entity("Simply.Sales.DLL.Models.Sales.ProductParameter", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<bool>("IsVisible")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal>("Price")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("ProductId")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProductId");
-
-                    b.ToTable("ProductParameters");
-                });
-
-            modelBuilder.Entity("Simply.Sales.DLL.Models.Settings.Setting", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Value")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Settings");
-                });
-
-            modelBuilder.Entity("Simply.Sales.DLL.Models.Clients.ClientAction", b =>
-                {
-                    b.HasOne("Simply.Sales.DLL.Models.Clients.TelegramClient", "Client")
-                        .WithMany("Actions")
+                    b.HasOne("Simply.Sales.DLL.Models.Clients.Client", "Client")
+                        .WithMany("DeliveryZones")
                         .HasForeignKey("ClientId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Simply.Sales.DLL.Models.Delivery.DeliveryZone", "DeliveryZone")
+                        .WithMany("Clients")
+                        .HasForeignKey("DeliveryZoneId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Client");
+
+                    b.Navigation("DeliveryZone");
                 });
 
-            modelBuilder.Entity("Simply.Sales.DLL.Models.Sales.BasketItem", b =>
+            modelBuilder.Entity("Simply.Sales.DLL.Models.Delivery.DeliveryZone", b =>
                 {
-                    b.HasOne("Simply.Sales.DLL.Models.Sales.Order", "Order")
+                    b.HasOne("Simply.Sales.DLL.Models.Delivery.DeliveryCity", "City")
+                        .WithMany("Zones")
+                        .HasForeignKey("CityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("City");
+                });
+
+            modelBuilder.Entity("Simply.Sales.DLL.Models.Orders.BasketItem", b =>
+                {
+                    b.HasOne("Simply.Sales.DLL.Models.Orders.Order", "Order")
                         .WithMany("Basket")
                         .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Simply.Sales.DLL.Models.Sales.Product", "Product")
-                        .WithMany("Baskets")
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Simply.Sales.DLL.Models.Sales.ProductParameter", "ProductParameter")
-                        .WithMany("Baskets")
-                        .HasForeignKey("ProductParameterId");
-
                     b.Navigation("Order");
-
-                    b.Navigation("Product");
-
-                    b.Navigation("ProductParameter");
                 });
 
-            modelBuilder.Entity("Simply.Sales.DLL.Models.Sales.Order", b =>
+            modelBuilder.Entity("Simply.Sales.DLL.Models.Orders.Order", b =>
                 {
-                    b.HasOne("Simply.Sales.DLL.Models.Clients.TelegramClient", "Client")
+                    b.HasOne("Simply.Sales.DLL.Models.Clients.Client", "Client")
                         .WithMany("Orders")
                         .HasForeignKey("ClientId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Simply.Sales.DLL.Models.Delivery.DeliveryZone", "DeliveryZone")
+                        .WithMany("Orders")
+                        .HasForeignKey("DeliveryZoneId");
+
                     b.Navigation("Client");
+
+                    b.Navigation("DeliveryZone");
                 });
 
-            modelBuilder.Entity("Simply.Sales.DLL.Models.Sales.Product", b =>
+            modelBuilder.Entity("Simply.Sales.DLL.Models.Clients.Client", b =>
                 {
-                    b.HasOne("Simply.Sales.DLL.Models.Sales.Category", "Category")
-                        .WithMany("Products")
-                        .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Category");
-                });
-
-            modelBuilder.Entity("Simply.Sales.DLL.Models.Sales.ProductParameter", b =>
-                {
-                    b.HasOne("Simply.Sales.DLL.Models.Sales.Product", "Product")
-                        .WithMany("Parameters")
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Product");
-                });
-
-            modelBuilder.Entity("Simply.Sales.DLL.Models.Clients.TelegramClient", b =>
-                {
-                    b.Navigation("Actions");
+                    b.Navigation("DeliveryZones");
 
                     b.Navigation("Orders");
                 });
 
-            modelBuilder.Entity("Simply.Sales.DLL.Models.Sales.Category", b =>
+            modelBuilder.Entity("Simply.Sales.DLL.Models.Delivery.DeliveryCity", b =>
                 {
-                    b.Navigation("Products");
+                    b.Navigation("Zones");
                 });
 
-            modelBuilder.Entity("Simply.Sales.DLL.Models.Sales.Order", b =>
+            modelBuilder.Entity("Simply.Sales.DLL.Models.Delivery.DeliveryZone", b =>
+                {
+                    b.Navigation("Clients");
+
+                    b.Navigation("Orders");
+                });
+
+            modelBuilder.Entity("Simply.Sales.DLL.Models.Orders.Order", b =>
                 {
                     b.Navigation("Basket");
-                });
-
-            modelBuilder.Entity("Simply.Sales.DLL.Models.Sales.Product", b =>
-                {
-                    b.Navigation("Baskets");
-
-                    b.Navigation("Parameters");
-                });
-
-            modelBuilder.Entity("Simply.Sales.DLL.Models.Sales.ProductParameter", b =>
-                {
-                    b.Navigation("Baskets");
                 });
 #pragma warning restore 612, 618
         }

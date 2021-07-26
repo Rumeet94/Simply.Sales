@@ -1,10 +1,5 @@
-using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Net.Http;
-using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
 
 using MediatR;
 
@@ -15,34 +10,31 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 
-using Simply.Sales.BLL.DbRequests.Handlers.Commands.Clients.Clients;
-using Simply.Sales.BLL.DbRequests.Handlers.Commands.Sales.Baskets;
-using Simply.Sales.BLL.DbRequests.Handlers.Commands.Sales.Orders;
-using Simply.Sales.BLL.DbRequests.Handlers.Queries.Clients.Clients;
-using Simply.Sales.BLL.DbRequests.Handlers.Queries.Sales.Products;
-using Simply.Sales.BLL.DbRequests.Handlers.Queries.Sales.ProductsParameters;
-using Simply.Sales.BLL.DbRequests.Requests.Queries.Sales.Baskets;
+using Simply.Sales.BLL.Builders;
 using Simply.Sales.BLL.Mappers;
+using Simply.Sales.BLL.PosterIntegration.Items;
+using Simply.Sales.BLL.PosterIntegration.Responces;
+using Simply.Sales.BLL.PosterIntegration.Servicies;
 using Simply.Sales.BLL.Providers;
+using Simply.Sales.BLL.Servicies.Basket;
+using Simply.Sales.BLL.Servicies.Clients;
+using Simply.Sales.BLL.Servicies.Delivery;
+using Simply.Sales.BLL.Servicies.Orders;
 using Simply.Sales.DLL.Configuration.Creater;
 using Simply.Sales.DLL.Configuration.Mapper;
 using Simply.Sales.DLL.Context;
-using Simply.Sales.DLL.Models.Clients;
-using Simply.Sales.DLL.Models.Sales;
-using Simply.Sales.DLL.Models.Settings;
-using Simply.Sales.DLL.Repositories;
-using Simply.Sales.DLL.Repositories.Clients;
-using Simply.Sales.DLL.Repositories.Sales;
-using Simply.Sales.DLL.Repositories.Settings;
-using Simply.Sales.TelegramBot.Infrastructure.Factories.Messages;
+using Simply.Sales.TelegramBot.Infrastructure.Factories.Messages.Form;
+using Simply.Sales.TelegramBot.Infrastructure.Handler;
 using Simply.Sales.TelegramBot.Infrastructure.Servicies.Bot;
-using Simply.Sales.TelegramBot.Infrastructure.Servicies.Client;
-using Simply.Sales.TelegramBot.Infrastructure.Servicies.Message;
-using Simply.Sales.TelegramBot.Infrastructure.Servicies.Message.Handler;
+using Simply.Sales.TelegramBot.Infrastructure.Servicies.Message.Create;
+using Simply.Sales.TelegramBot.Infrastructure.Servicies.Message.Create.Delivery;
+using Simply.Sales.TelegramBot.Infrastructure.Servicies.Message.Create.Menu;
+using Simply.Sales.TelegramBot.Infrastructure.Servicies.Message.Edit;
+using Simply.Sales.TelegramBot.Infrastructure.Servicies.Message.Read;
 
 using Telegram.Bot;
+using Telegram.Bot.Args;
 
 namespace Simply.Sales.TelegramBot {
 	public class Startup {
@@ -60,22 +52,11 @@ namespace Simply.Sales.TelegramBot {
 			services.AddDbContext<SalesDbContext>(options =>
 				options.UseSqlite(b => b.MigrationsAssembly("Simply.Sales.DLL"))
 			);
-
+			services.AddScoped<SalesDbContext>();
 			services.AddHttpClient();
 			services.AddSingleton<IDbModelsCreaterMapper, DbModelsCreaterMapper>();
 			services.AddSingleton<IDbModelsCreater, DbModelsCreater>();
-
-			services.AddScoped<SalesDbContext>();
-
-			services.AddScoped<IDbRepository<TelegramClient>, TelegramClientRepository>();
-			services.AddScoped<IDbRepository<ClientAction>, ClientActionRepository>();
-
-			services.AddScoped<IDbRepository<Category>, CategoryRepository>();
-			services.AddScoped<IDbRepository<Product>, ProductRepository>();
-			services.AddScoped<IDbRepository<ProductParameter>, ProductParameterRepository>();
-			services.AddScoped<IDbRepository<BasketItem>, BasketRepository>();
-			services.AddScoped<IDbRepository<Order>, OrderRepository>();
-			services.AddScoped<IDbRepository<Setting>, SettingRepository>();
+			services.AddSingleton<PosterMenu>();
 
 			services.AddMediatR(typeof(Startup));
 			services.AddAutoMapper(c => c.AddProfile<AutoMappingConfiguration>(), typeof(Startup));
@@ -84,21 +65,16 @@ namespace Simply.Sales.TelegramBot {
 			//services.AddSingleton<ITelegramBotClient, TelegramBotClient>(c => new TelegramBotClient("1713565257:AAFnwdptJQaJJciyOz8Ys6lrtkZrBiwmPzE"));
 			services.AddSingleton<IWorkTimeProvider, WorkTimeProvider>();
 
-			AddCommandHandlers(services);
-			AddQueryHandlers(services);
+			services.AddTransient<IBuilder<PosterMenuResponce, PosterMenu>, PosterMenuBuilder>();
+
 			AddServices(services);
 			AddFactories(services);
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-		public void Configure(
-			IApplicationBuilder app,
-			IWebHostEnvironment env,
-			IBotService botService,
-			IHttpClientFactory httpClientFactory,
-			ILogger<Startup> logger
-		) {
-			Task.Run(() => botService.Watch()).Wait();
+		public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IBotService botService, IPosterService posterService) {
+			posterService.GetMenu().Wait();
+			botService.Watch().Wait();
 
 			if (env.IsDevelopment()) {
 				app.UseDeveloperExceptionPage();
@@ -135,30 +111,38 @@ namespace Simply.Sales.TelegramBot {
 			});
 		}
 
-		private static void AddCommandHandlers(IServiceCollection services) =>
-			services
-				.AddMediatR(typeof(AddTelegramClientHandler).GetTypeInfo().Assembly)
-				.AddMediatR(typeof(UpdateTelegramClientHanlder).GetTypeInfo().Assembly)
-				.AddMediatR(typeof(AddBasketItemHandler).GetTypeInfo().Assembly)
-				.AddMediatR(typeof(AddOrderHandler).GetTypeInfo().Assembly)
-				.AddMediatR(typeof(UpdateOrderHanlder).GetTypeInfo().Assembly);
-
-		private static void AddQueryHandlers(IServiceCollection services) =>
-			services
-				.AddMediatR(typeof(GetBasketByOrderId).GetTypeInfo().Assembly)
-				.AddMediatR(typeof(GetClientByTelegramChatIdHandler).GetTypeInfo().Assembly)
-				.AddMediatR(typeof(GetProductParameterHandler).GetTypeInfo().Assembly)
-				.AddMediatR(typeof(GetProductHandler).GetTypeInfo().Assembly)
-				.AddMediatR(typeof(GetClientChatIdsHandler).GetTypeInfo().Assembly);
-
 		private static void AddServices(IServiceCollection services) =>
 			services
 				.AddSingleton<IBotService, BotService>()
-				.AddSingleton<IClientService, ClientService>()
-				.AddSingleton<IMessageHandlerService, MessageHandlerService>()
-				.AddSingleton<IMessageService, MessageService>();
+				.AddTransient<IClientDbService, ClientDbService>()
+				.AddTransient<IBasketDbService, BasketDbService>()
+				.AddTransient<IOrderDbService, OrderDbService>()
+				.AddTransient<IDeliveryDbService, DeliveryDbService>()
+				.AddTransient<IClientDeliveryZonesCreateService, ClientDeliveryZonesCreateService>()
+				.AddTransient<IEditClientDeliveryZonesCreateService, EditClientDeliveryZonesCreateService>()
+				.AddTransient<IBotHandler<CallbackQueryEventArgs>, CallbackHandler>()
+				.AddTransient<IBotHandler<MessageEventArgs>, MessageHandler>()
+				.AddTransient<IMenuCreateService, MenuCreateService>()
+				.AddTransient<IProductFormCreateService, ProductFormCreateService>()
+				.AddTransient<IProductFormEditService, ProductFormEditService>()
+				.AddTransient<IProductFormReadService, ProductFormReadService>()
+				.AddTransient<IOrderFormCreateService, OrderFormCreateService>()
+				.AddTransient<IOrderFormEditService, OrderFormEditService>()
+				.AddTransient<IOrderFormReadService, OrderFormReadService>()
+				.AddTransient<IMainMenuCreateService, MainMenuCreateService>()
+				.AddTransient<ICommentCreateService, CommentCreateService>()
+				.AddTransient<IEditOrderCreateService, EditOrderCreateService>()
+				.AddTransient<ICategoriesCreateService, CategoriesCreateService>()
+				.AddTransient<IProductsCreateService, ProductsCreateService>()
+				.AddTransient<IProductModsCreateService, ProductModsCreateService>()
+				.AddTransient<IOrderTextCreateService, OrderTextCreateService>()
+				.AddTransient<IDeliveryCreateService, DeliveryCreateService>()
+				.AddTransient<IDeliveryZoneDiscriptionCreateService, DeliveryZoneDiscriptionCreateService>()
+				.AddTransient<IEditOrderDeliveryZoneCreateService, EditOrderDeliveryZoneCreateService>()
+				.AddTransient<IPosterService, PosterService>();
 
 		private static void AddFactories(IServiceCollection services) =>
-			services.AddSingleton<IMessageFactory, MessageFactory>();
+			services
+				.AddTransient<IMessageFormFactory, MessageFormFactory>();
 	}
 }

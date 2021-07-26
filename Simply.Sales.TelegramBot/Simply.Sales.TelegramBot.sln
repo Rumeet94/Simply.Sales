@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.31112.23
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Simply.Sales.TelegramBot", "Simply.Sales.TelegramBot.csproj", "{2DCDD617-636A-4C4F-A3FA-932DEE34E63C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Simply.Sales.TelegramBot", "Simply.Sales.TelegramBot.csproj", "{2DCDD617-636A-4C4F-A3FA-932DEE34E63C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Simply.Sales.DLL", "..\Simply.Sales.DLL\Simply.Sales.DLL.csproj", "{AA73A1C5-9E36-427B-86EF-120C3E1A3505}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Simply.Sales.DLL", "..\Simply.Sales.DLL\Simply.Sales.DLL.csproj", "{AA73A1C5-9E36-427B-86EF-120C3E1A3505}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Simply.Sales.BLL", "..\Simply.Sales.BL\Simply.Sales.BLL.csproj", "{C83812A5-B969-4E48-83CA-D8FB64E02762}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Simply.Sales.BLL", "..\Simply.Sales.BL\Simply.Sales.BLL.csproj", "{C83812A5-B969-4E48-83CA-D8FB64E02762}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

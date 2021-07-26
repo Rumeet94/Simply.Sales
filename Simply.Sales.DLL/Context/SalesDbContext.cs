@@ -4,8 +4,8 @@ using Microsoft.EntityFrameworkCore;
 
 using Simply.Sales.DLL.Configuration.Creater;
 using Simply.Sales.DLL.Models.Clients;
-using Simply.Sales.DLL.Models.Sales;
-using Simply.Sales.DLL.Models.Settings;
+using Simply.Sales.DLL.Models.Delivery;
+using Simply.Sales.DLL.Models.Orders;
 
 namespace Simply.Sales.DLL.Context {
 	public class SalesDbContext : DbContext {
@@ -18,21 +18,17 @@ namespace Simply.Sales.DLL.Context {
 			_dbModelsCreater = dbModelsCreater;
 		}
 
-		public DbSet<TelegramClient> Clients { get; set; }
-		
-		public DbSet<Category> Categories { get; set; }
-
-		public DbSet<Product> Products { get; set; }
-
-		public DbSet<Setting> Settings { get; set; }
+		public DbSet<Client> Clients { get; set; }
 
 		public DbSet<BasketItem> Baskets { get; set; }
 
 		public DbSet<Order> Orders { get; set; }
 
-		public DbSet<ClientAction> ClientActions { get; set; }
+		public DbSet<DeliveryCity> DeliveryCities { get; set; }
 
-		public DbSet<ProductParameter> ProductParameters { get; set; }
+		public DbSet<DeliveryZone> DeliveryZones { get; set; }
+
+		public DbSet<ClientToDeliveryZone> ClientsToDeliveryZones { get; set; }
 
 		protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) =>
 			optionsBuilder.UseSqlite(@"Data Source=db/raf_coffee.db");

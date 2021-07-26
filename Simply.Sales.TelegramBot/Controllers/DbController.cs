@@ -6,8 +6,6 @@ using MediatR;
 
 using Microsoft.AspNetCore.Mvc;
 
-using Simply.Sales.BLL.DbRequests.Requests.Commands.Db;
-using Simply.Sales.BLL.DbRequests.Requests.Queries.Clients.Clients;
 using Simply.Sales.TelegramBot.Configuration;
 
 namespace Simply.Sales.TelegramBot.Controllers {
@@ -25,7 +23,7 @@ namespace Simply.Sales.TelegramBot.Controllers {
 		[HttpPost("init")]
 		public async Task<IActionResult> InitializeDb() {
 			try {
-				await _mediator.Send(new InitDb());
+				//await _mediator.Send(new InitDb());
 
 				return Ok();
 			}
@@ -40,10 +38,8 @@ namespace Simply.Sales.TelegramBot.Controllers {
 				return BadRequest();
 			}
 
-			var chatIds = await _mediator.Send(new GetClientChatIds());
-			var json = JsonSerializer.Serialize(chatIds);
 
-			return new ContentResult { Content = json };
+			return Ok();
 		}
 	}
 }

@@ -6,8 +6,8 @@ namespace Simply.Sales.BLL.Providers {
 
 		public TimeSpan EndWorkTime { get; }
 
-		DateTime? GetDateTimeInWorkPeriod(string input);
+		DateTime? GetDateTimeInWorkPeriod(TimeSpan time);
 
-		bool IsWorking();
+		bool IsWorking(DateTime date);
 	}
 }
